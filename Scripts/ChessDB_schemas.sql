@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Users ( uuid      INTEGER AUTO_INCREMENT,
                                    email     VARCHAR(50),
                                    PRIMARY KEY (uuid),
                                    UNIQUE (username)
-                                 )
+                                 );
 
 
 CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_INCREMENT,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_
                                                UNIQUE (cname, uuid),
                                                FOREIGN KEY (uuid) REFERENCES Users
                                                        ON DELETE CASCADE 
-                               )
+                               );
 
 
 CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
                                    PRIMARY KEY (gid),
                                    UNIQUE (white_player_name, black_player_name, event_name,
                                            event_round, event_date)
-                                 )
+                                 );
 
 
 CREATE TABLE IF NOT EXISTS Contained_Games ( cid   INTEGER,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS Contained_Games ( cid   INTEGER,
                                              FOREIGN KEY (cid) REFERENCES Owned_Collections
                                                      ON DELETE CASCADE,       
                                              FOREIGN KEY (gid) REFERENCES Games
-                                           )
+                                           );
 
 
 CREATE TABLE IF NOT EXISTS Played_Moves ( mid             INTEGER AUTO_INCREMENT,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS Played_Moves ( mid             INTEGER AUTO_INCREMENT
                                           current_move    VARCHAR(5) NOT NULL,
                                           PRIMARY KEY (mid),
                                           UNIQUE (prior_position, current_move)
-                                        )        
+                                        );        
 
 
 CREATE TABLE IF NOT EXISTS Contained_Moves ( gid INTEGER,
@@ -71,4 +71,4 @@ CREATE TABLE IF NOT EXISTS Contained_Moves ( gid INTEGER,
                                              PRIMARY KEY (gid, mid),
                                              FOREIGN KEY (gid) REFERENCES Games,
                                              FOREIGN KEY (mid) REFERENCES Played_Moves
-                                           )
+                                           );
