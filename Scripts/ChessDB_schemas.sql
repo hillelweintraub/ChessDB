@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_
                                                date_last_modified  TIMESTAMP NOT NULL,
                                                PRIMARY KEY (cid),
                                                UNIQUE (cname, uuid),
-                                               FOREIGN KEY (uuid) REFERENCES Users
+                                               FOREIGN KEY (uuid) REFERENCES Users(uuid)
                                                        ON DELETE CASCADE 
                                );
 
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
                                    game_source           VARCHAR(20) NOT NULL,
                                    PRIMARY KEY (gid),
                                    UNIQUE (white_player_name, black_player_name, event_name,
-                                           event_round, event_date)
+                                           event_round,date)
                                  );
 
 
@@ -52,9 +52,9 @@ CREATE TABLE IF NOT EXISTS Contained_Games ( cid   INTEGER,
                                              gid   INTEGER,
                                              label VARCHAR(80),
                                              PRIMARY KEY (cid, gid),
-                                             FOREIGN KEY (cid) REFERENCES Owned_Collections
+                                             FOREIGN KEY (cid) REFERENCES Owned_Collections(cid)
                                                      ON DELETE CASCADE,       
-                                             FOREIGN KEY (gid) REFERENCES Games
+                                             FOREIGN KEY (gid) REFERENCES Games(gid)
                                            );
 
 
@@ -69,6 +69,6 @@ CREATE TABLE IF NOT EXISTS Played_Moves ( mid             INTEGER AUTO_INCREMENT
 CREATE TABLE IF NOT EXISTS Contained_Moves ( gid INTEGER,
                                              mid INTEGER,
                                              PRIMARY KEY (gid, mid),
-                                             FOREIGN KEY (gid) REFERENCES Games,
-                                             FOREIGN KEY (mid) REFERENCES Played_Moves
+                                             FOREIGN KEY (gid) REFERENCES Games(gid),
+                                             FOREIGN KEY (mid) REFERENCES Played_Moves(mid)
                                            );
