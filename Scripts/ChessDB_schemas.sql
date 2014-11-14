@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Users ( uuid      INTEGER AUTO_INCREMENT,
                                    email     VARCHAR(50),
                                    PRIMARY KEY (uuid),
                                    UNIQUE (username)
-                                 );
+                   q              );
 
 
 CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_INCREMENT,
@@ -25,26 +25,25 @@ CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_
 
 
 CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
-                                   event_site            VARCHAR(50),
-                                   event_name            VARCHAR(50),   
-                                   event_round           REAL,
-                                   date                  DATE,
-                                   white_player_name     VARCHAR(30) NOT NULL,
-                                   black_player_name     VARCHAR(30) NOT NULL,
-                                   white_title           VARCHAR(5),
-                                   black_title           VARCHAR(5),
-                                   white_player_rating   INTEGER,  
-                                   black_player_rating   INTEGER, 
-                                   result                VARCHAR(7) NOT NULL,
-                                   ECO_code              VARCHAR(5), 
-                                   opening               VARCHAR(50),
-                                   variation             VARCHAR(50),
+                                   Site                  VARCHAR(50),
+                                   Event                 VARCHAR(50),   
+                                   Round                 REAL,
+                                   Date                  DATE,
+                                   White                 VARCHAR(30) NOT NULL,
+                                   Black                 VARCHAR(30) NOT NULL,
+                                   WhiteTitle            VARCHAR(5),
+                                   BlackTitle            VARCHAR(5),
+                                   WhiteELO              INTEGER,  
+                                   BlackELO              INTEGER, 
+                                   Result                VARCHAR(7) NOT NULL,
+                                   ECO                   VARCHAR(5), 
+                                   Opening               VARCHAR(50),
+                                   Variation             VARCHAR(50),
                                    number_of_moves       INTEGER NOT NULL,
                                    move_list             VARCHAR(1000) NOT NULL,
                                    game_source           VARCHAR(20) NOT NULL,
                                    PRIMARY KEY (gid),
-                                   UNIQUE (white_player_name, black_player_name, event_name,
-                                           event_round,date)
+                                   UNIQUE (White, Black, Event, Round, Date)
                                  );
 
 
