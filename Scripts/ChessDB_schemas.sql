@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS Users ( uuid      INTEGER AUTO_INCREMENT,
                                    email     VARCHAR(50),
                                    PRIMARY KEY (uuid),
                                    UNIQUE (username)
-                   q              );
+                                 );
 
 
 CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_INCREMENT,
@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
                                    Black                 VARCHAR(30) NOT NULL,
                                    WhiteTitle            VARCHAR(5),
                                    BlackTitle            VARCHAR(5),
-                                   WhiteELO              INTEGER,  
-                                   BlackELO              INTEGER, 
+                                   WhiteElo              INTEGER,  
+                                   BlackElo              INTEGER, 
                                    Result                VARCHAR(7) NOT NULL,
                                    ECO                   VARCHAR(5), 
                                    Opening               VARCHAR(50),
