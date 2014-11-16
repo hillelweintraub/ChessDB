@@ -5,16 +5,13 @@ from __future__ import print_function
 import sys
 import mysql.connector
 from mysql.connector import errorcode
-from datetime import date, datetime
-from math import ceil
+from datetime import date, datetime,
 
 ##############################################################
 # CONSTANTS
 ##############################################################
 DATABASE = "TestChessDB"
 PGN_FILE  = "../data/out2.pgn"
-START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-START_FEN_PROCESSED = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
 DEBUG = True 
 
 ##############################################################
@@ -39,74 +36,55 @@ def dbConnect(username, passwd, database):
 def execSql(cursor, sqlStmt):
     try:
         cursor.execute(sqlStmt)
-		return 0
     except mysql.connector.Error as err:
         print("mysql.Error: %s" % err)
-		return -1
     if DEBUG: print(cursor._executed, '\n')
 
 
 def execSqlWithParams(cursor, sqlStmt, params):
     try:
         cursor.execute(sqlStmt, params)
-		return 0
     except mysql.connector.Error as err:
         print("mysql.Error: %s" % err)
-		return -1
     if DEBUG: print(cursor._executed, "params:", params, '\n')
     
 def getGame(pgn):
-    data_game = {
-      'Site':None, 'Event':None, 'Round':None, 'White':None, 'Black':None, 
-      'WhiteTitle':None, 'BlackTitle':None, 'Date':None,  
-      'WhiteElo':None, 'BlackElo':None, 'Result':None, 'ECO':None, 'Opening':None,
-      'Variation':None, 'number_of_moves':None, 'move_list':None, 'game_source':None
-    }
-    
-     moves = []
-     
+    data_game = 
+    current_move_list = []
+    "(event_site, event_name, event_round, date, "
+    "white_player_name, black_player_name, "
+    "white_title, black_title, "
+    "white_player_rating, black_player_rating, "
+    "result, ECO_code, opening, variation, "
+    "number_of_moves, move_list, game_source) "
     #parse the metadata
-    util_parseMetadata(pgn)
     for line in pgn:
-        if not line or line == '\n': break
-        line = line.strip().replace('[','').replace(']','').replace('"','').split()
+        if not line or line = '\n': break
+        line = line.replace('[','').replace(']','').replace('"','').split()
         field_name = line[0]
         field_value = ' '.join(line[1:])
         if field_name in data_game:
             if field_name == 'Date':
-                field_value = util_convert2SqlDate(field_value)
+                #convert date format
             data_game[field_name] = field_value
     #parse the move list
-    # util_parseMovetext
     for line in pgn:
-        if not line or line == '\n': break
-        moves.append(line.strip())
-    moves = ' '.join(moves)
-    data_game['move_list'] = moves     
-    moves = moves.split().pop() #split into tokens and get rid of result token 
-    for token in moves[:]:
-        if token[-1] == '.': moves.remove(token)  #remove move number tokens
-    data_game['number_of_moves'] =  int(ceil(len(moves)/2.0)))    
-    data_game['game_source'] = 'TWIC'
-    return data_game, moves
+        if not line or line = '\n': break
 
-def getPriorPositions(fen):
-    prior_position_list = [START_FEN_PROCESSED] #include start position
-    for line in fen:
-        if line.strip() == START_FEN:
-            if len(prior_position_list) > 1: break  #reached beginning of next game         
-            else: continue                          #first game in file
-        else:
-            line = ' '.join(line.split()[:-2])
-            prior_position_list.append(line)
-    return prior_position_list        
+def getPlayedMoves(prior_position_list,current_move_list):
+    data_played_moves_list = []
+    for prior_pos,curr_move in zip(prior_position_list,current_move_list):
+        data_played_move = {'prior_position':prior_pos
+                           ,'current_move':curr_move}
+        data_played_moves_list.append(data_played_move)
+    return data_played_moves_list
+      
 
-def util_convert2SqlDate(field_value):
-    field_value.replace(".","-")
-    field_value.replace("??","01")
-    return field_value
+    
+
+	
 ##############################################################
-# SQL STATEMENTS
+# SQL INSERT STATEMENTS
 ##############################################################
 
 #USERS TABLE
@@ -137,11 +115,19 @@ sqlInsertPlayedMove = (
   "VALUES (%(prior_position)s, %(current_move)s)"  
 )
 
-#CONTAINED_MOVEs TABLE
+#CONTAINED_MOVES TABLE
 sqlInsertContained_Moves = (
   "INSERT INTO Contained_Moves "
   "(gid, mid)" 
   "VALUES (%(gid)s, %(mid)s)"
+)
+
+#SELECT PLAYED_MOVE
+sqlSelectPlayedMove = (
+  "SELECT P.mid"
+  "FROM Played_Moves P"
+  "WHERE p.prior_position = %(prior_position)s AND"
+        "p.current_move = %(current_move)s"
 )
 
 ###############################################################
@@ -153,9 +139,21 @@ def main():
         print("Usage: python fill_tables.py <username> <password>")
         sys.exit()
 
-    # Connect to the database and open files
+    # Connect to the database
     db = dbConnect(sys.argv[1], sys.argv[2], DATABASE)
     cursor = db.cursor()
+    
+    # Parse file, execute SQL statements, and commit transaction
+    with open(PGN_FILE,'r') as pgn:
+        game = getGame(pgn):
+        while game:
+            execSqlWithParams(cursor, sqlInsertGame, game)
+            game = get_game(pgn)
+    #TODO: 
+    #insert into Games table
+    #insert into Played_Moves table
+    #insert into Contained_Moves table
+
     pgn = open(pgn_file,'r')
     fen = open(fen_file,'r')
 
@@ -170,9 +168,13 @@ def main():
         data_played_moves_list = getPlayedMoves(prior_position_list,
                                                 current_move_list)
         for data_played_move in data_played_moves_list:
+            #insert played_move into the DB
             execSqlWithParams(cursor, sqlInsertPlayedMove, data_played_move)
-            mid = cursor.lastrowid
+            #get the mid of the played_move
+            mid = execSqlWithParams(cursor,sqlSelectPlayedMove,
+                                    data_played_move)
             data_contained_move = {'gid' : gid,'mid' : mid}  
+            #insert contained_move into the DB
             execSqlWithParams(cursor, sqlInsertContained_Moves,
                               data_contained_move)
 
