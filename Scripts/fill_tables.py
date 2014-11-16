@@ -11,7 +11,7 @@ from datetime import date, datetime,
 # CONSTANTS
 ##############################################################
 DATABASE = "TestChessDB"
-PGN_FILE  = "../data/out2.pgn"
+PGN_FILE  = "../data/out.pgn"
 DEBUG = True 
 
 ##############################################################
