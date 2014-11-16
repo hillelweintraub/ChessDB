@@ -5,13 +5,16 @@ from __future__ import print_function
 import sys
 import mysql.connector
 from mysql.connector import errorcode
-from datetime import date, datetime,
+from datetime import date, datetime
+from math import ceil
 
 ##############################################################
 # CONSTANTS
 ##############################################################
 DATABASE = "TestChessDB"
 PGN_FILE  = "../data/out2.pgn"
+START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+START_FEN_PROCESSED = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
 DEBUG = True 
 
 ##############################################################
@@ -36,49 +39,74 @@ def dbConnect(username, passwd, database):
 def execSql(cursor, sqlStmt):
     try:
         cursor.execute(sqlStmt)
+		return 0
     except mysql.connector.Error as err:
         print("mysql.Error: %s" % err)
+		return -1
     if DEBUG: print(cursor._executed, '\n')
 
 
 def execSqlWithParams(cursor, sqlStmt, params):
     try:
         cursor.execute(sqlStmt, params)
+		return 0
     except mysql.connector.Error as err:
         print("mysql.Error: %s" % err)
+		return -1
     if DEBUG: print(cursor._executed, "params:", params, '\n')
     
 def getGame(pgn):
-    data_game = 
-    current_move_list = []
-    "(event_site, event_name, event_round, date, "
-    "white_player_name, black_player_name, "
-    "white_title, black_title, "
-    "white_player_rating, black_player_rating, "
-    "result, ECO_code, opening, variation, "
-    "number_of_moves, move_list, game_source) "
+    data_game = {
+      'Site':None, 'Event':None, 'Round':None, 'White':None, 'Black':None, 
+      'WhiteTitle':None, 'BlackTitle':None, 'Date':None,  
+      'WhiteElo':None, 'BlackElo':None, 'Result':None, 'ECO':None, 'Opening':None,
+      'Variation':None, 'number_of_moves':None, 'move_list':None, 'game_source':None
+    }
+    
+     moves = []
+     
     #parse the metadata
+    util_parseMetadata(pgn)
     for line in pgn:
-        if not line or line = '\n': break
-        line = line.replace('[','').replace(']','').replace('"','').split()
+        if not line or line == '\n': break
+        line = line.strip().replace('[','').replace(']','').replace('"','').split()
         field_name = line[0]
         field_value = ' '.join(line[1:])
         if field_name in data_game:
             if field_name == 'Date':
-                #convert date format
+                field_value = util_convert2SqlDate(field_value)
             data_game[field_name] = field_value
     #parse the move list
+    # util_parseMovetext
     for line in pgn:
-        if not line or line = '\n': break
+        if not line or line == '\n': break
+        moves.append(line.strip())
+    moves = ' '.join(moves)
+    data_game['move_list'] = moves     
+    moves = moves.split().pop() #split into tokens and get rid of result token 
+    for token in moves[:]:
+        if token[-1] == '.': moves.remove(token)  #remove move number tokens
+    data_game['number_of_moves'] =  int(ceil(len(moves)/2.0)))    
+    data_game['game_source'] = 'TWIC'
+    return data_game, moves
 
+def getPriorPositions(fen):
+    prior_position_list = [START_FEN_PROCESSED] #include start position
+    for line in fen:
+        if line.strip() == START_FEN:
+            if len(prior_position_list) > 1: break  #reached beginning of next game         
+            else: continue                          #first game in file
+        else:
+            line = ' '.join(line.split()[:-2])
+            prior_position_list.append(line)
+    return prior_position_list        
 
-      
-
-    
-
-	
+def util_convert2SqlDate(field_value):
+    field_value.replace(".","-")
+    field_value.replace("??","01")
+    return field_value
 ##############################################################
-# SQL INSERT STATEMENTS
+# SQL STATEMENTS
 ##############################################################
 
 #USERS TABLE
@@ -125,21 +153,9 @@ def main():
         print("Usage: python fill_tables.py <username> <password>")
         sys.exit()
 
-    # Connect to the database
+    # Connect to the database and open files
     db = dbConnect(sys.argv[1], sys.argv[2], DATABASE)
     cursor = db.cursor()
-    
-    # Parse file, execute SQL statements, and commit transaction
-    with open(PGN_FILE,'r') as pgn:
-        game = getGame(pgn):
-        while game:
-            execSqlWithParams(cursor, sqlInsertGame, game)
-            game = get_game(pgn)
-    #TODO: 
-    #insert into Games table
-    #insert into Played_Moves table
-    #insert into Contained_Moves table
-
     pgn = open(pgn_file,'r')
     fen = open(fen_file,'r')
 
