@@ -71,7 +71,13 @@ def getGame(pgn):
     for line in pgn:
         if not line or line = '\n': break
 
-
+def getPlayedMoves(prior_position_list,current_move_list):
+    data_played_moves_list = []
+    for prior_pos,curr_move in zip(prior_position_list,current_move_list):
+        data_played_move = {'prior_position':prior_pos
+                           ,'current_move':curr_move}
+        data_played_moves_list.append(data_played_move)
+    return data_played_moves_list
       
 
     
@@ -109,11 +115,19 @@ sqlInsertPlayedMove = (
   "VALUES (%(prior_position)s, %(current_move)s)"  
 )
 
-#CONTAINED_MOVEs TABLE
+#CONTAINED_MOVES TABLE
 sqlInsertContained_Moves = (
   "INSERT INTO Contained_Moves "
   "(gid, mid)" 
   "VALUES (%(gid)s, %(mid)s)"
+)
+
+#SELECT PLAYED_MOVE
+sqlSelectPlayedMove = (
+  "SELECT P.mid"
+  "FROM Played_Moves P"
+  "WHERE p.prior_position = %(prior_position)s AND"
+        "p.current_move = %(current_move)s"
 )
 
 ###############################################################
@@ -154,9 +168,13 @@ def main():
         data_played_moves_list = getPlayedMoves(prior_position_list,
                                                 current_move_list)
         for data_played_move in data_played_moves_list:
+            #insert played_move into the DB
             execSqlWithParams(cursor, sqlInsertPlayedMove, data_played_move)
-            mid = cursor.lastrowid
+            #get the mid of the played_move
+            mid = execSqlWithParams(cursor,sqlSelectPlayedMove,
+                                    data_played_move)
             data_contained_move = {'gid' : gid,'mid' : mid}  
+            #insert contained_move into the DB
             execSqlWithParams(cursor, sqlInsertContained_Moves,
                               data_contained_move)
 
