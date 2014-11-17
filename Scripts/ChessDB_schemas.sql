@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS Contained_Games ( cid   INTEGER,
 
 CREATE TABLE IF NOT EXISTS Played_Moves ( mid             INTEGER AUTO_INCREMENT,
                                           prior_position  VARCHAR(80) NOT NULL,
-                                          current_move    VARCHAR(5) NOT NULL,
+                                          current_move    VARCHAR(10) NOT NULL,
                                           PRIMARY KEY (mid),
                                           UNIQUE (prior_position, current_move)
                                         );        

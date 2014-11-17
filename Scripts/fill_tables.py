@@ -12,11 +12,25 @@ from math import ceil
 # CONSTANTS
 ##############################################################
 DATABASE = "TestChessDB"
-PGN_FILE  = "../data/out.pgn"
+
+PGN_FILE  = "../data/NewTWIC/PGN/twic00920.pgn"
+FEN_FILE = "../data/NewTWIC/FEN/twic00920.fen"
+
 START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-START_FEN_PROCESSED = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"
+START_FEN_PROCESSED = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq" 
+
 GAME_SRC = "TWIC"
-DEBUG = True 
+
+INFO = 0
+DEBUG = 1 
+WARNING = 2
+ERROR = 3
+FATAL = 4
+DEBUG_LEVEL = DEBUG
+
+STATUS_EOF = 0
+STATUS_NO_MOVE_TEXT = 1
+STATUS_WELL_FORMED = 2
 
 ##############################################################
 # SQL STATEMENTS
@@ -27,7 +41,7 @@ sqlInsertUser = (
   "INSERT INTO Users "
   "(username, password, email) "
   "VALUES (%(username)s, %(password)s, %(email)s)"
-)	
+)   
                  
 #GAMES TABLE
 sqlInsertGame = (
@@ -53,16 +67,16 @@ sqlInsertPlayedMove = (
 #CONTAINED_MOVES TABLE
 sqlInsertContained_Moves = (
   "INSERT INTO Contained_Moves "
-  "(gid, mid)" 
+  "(gid, mid) " 
   "VALUES (%(gid)s, %(mid)s)"
 )
 
 #SELECT PLAYED_MOVE
 sqlSelectPlayedMove = (
-  "SELECT P.mid"
-  "FROM Played_Moves P"
-  "WHERE p.prior_position = %(prior_position)s AND"
-        "p.current_move = %(current_move)s"
+  "SELECT P.mid "
+  "FROM Played_Moves P "
+  "WHERE P.prior_position = %(prior_position)s AND "
+        "P.current_move = %(current_move)s"
 )
 
 
@@ -70,48 +84,57 @@ sqlSelectPlayedMove = (
 # FUNCTIONS
 ##############################################################
 def dbConnect(username, passwd, database):
-	try:
-		db = mysql.connector.connect(user = username,
-									  password = passwd,
-									  database = database)
-									  
-	except mysql.connector.Error as err:
-		if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-			print("Something is wrong with your user name or password")
-		elif err.errno == errorcode.ER_BAD_DB_ERROR:
-			print("Database does not exists")
-		else:
-			print(err)
-		sys.exit()
-	return db	
+    try:
+        db = mysql.connector.connect(user = username,
+                                      password = passwd,
+                                      database = database)
+                                      
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("ERROR: Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("ERROR: Database does not exists")
+        else:
+            print("ERROR:", err)
+        sys.exit()
+    return db   
 
 def execSql(cursor, sqlStmt):
     try:
         cursor.execute(sqlStmt)
-		return 0
+        if DEBUG_LEVEL <= DEBUG: print("DEBUG: Executing ", cursor._executed, "params:", params, '\n')
+        return 0
     except mysql.connector.Error as err:
-        print("mysql.Error: %s" % err)
-		return -1
-    if DEBUG: print(cursor._executed, '\n')
-
-
+        if DEBUG_LEVEL <= ERROR :
+            print("ERROR: FAILED to execute: ", cursor._executed, "params:", params)
+            print("ERROR: mysql.Error %s\n" % err)
+        return -1
+    
 def execSqlWithParams(cursor, sqlStmt, params):
     try:
         cursor.execute(sqlStmt, params)
-		return 0
+        if DEBUG_LEVEL <= DEBUG: print("DEBUG: Executing ", cursor._executed, "params:", params, '\n')
+        return 0
     except mysql.connector.Error as err:
-        print("mysql.Error: %s" % err)
-		return -1
-    if DEBUG: print(cursor._executed, "params:", params, '\n')
-    
+        if DEBUG_LEVEL <= ERROR:
+            print("ERROR: FAILED to execute: ", cursor._executed, "params:", params)
+            print("ERROR: mysql.Error: %s\n" % err)
+        return -1
+        
 def getGame(pgn):
     data_game = util_parseMetadata(pgn)            #parse the metadata
-	moves, move_list = util_parseMovetext(pgn)     #parse the move list
+    moves, move_list = util_parseMoveText(pgn)     #parse the move list
     data_game['move_list'] = move_list 
-	data_game['number_of_moves'] =  int(ceil(len(moves)/2.0)))    
+    data_game['number_of_moves'] =  int(ceil(len(moves)/2.0))    
     data_game['game_source'] = GAME_SRC
-    return data_game, moves
-
+    if not moves and move_list == '':
+        status = STATUS_EOF
+    elif not moves and move_list != '':
+        status = STATUS_NO_MOVE_TEXT
+    else:
+        status = STATUS_WELL_FORMED
+    return data_game, moves, status 
+    
 def getPriorPositions(fen):
     prior_position_list = [START_FEN_PROCESSED] #include start position
     for line in fen:
@@ -119,7 +142,7 @@ def getPriorPositions(fen):
             if len(prior_position_list) > 1: break  #reached beginning of next game         
             else: continue                          #first game in file
         else:
-            line = ' '.join(line.split()[:-2])      #remove last 2 fields 
+            line = util_processFENLine(line)     
             prior_position_list.append(line)
     return prior_position_list        
 
@@ -132,14 +155,14 @@ def getPlayedMoves(prior_position_list,current_move_list):
     return data_played_moves_list
       
 def util_parseMetadata(pgn):
-	data_game = {
+    data_game = {
       'Site':None, 'Event':None, 'Round':None, 'White':None, 'Black':None, 
       'WhiteTitle':None, 'BlackTitle':None, 'Date':None,  
       'WhiteElo':None, 'BlackElo':None, 'Result':None, 'ECO':None, 'Opening':None,
       'Variation':None, 'number_of_moves':None, 'move_list':None, 'game_source':None
-    }		
-	for line in pgn:
-        if not line or line == '\n': break
+    }       
+    for line in pgn:
+        if not line or line.strip() == '': break
         line = line.strip().replace('[','').replace(']','').replace('"','').split()
         field_name = line[0]
         field_value = ' '.join(line[1:])
@@ -147,29 +170,32 @@ def util_parseMetadata(pgn):
             if field_name == 'Date':
                 field_value = util_convert2SqlDate(field_value)
             data_game[field_name] = field_value
-	return data_game		
+    return data_game        
 
 def util_parseMoveText(pgn):
-	moves = []
+    moves = []
     for line in pgn:
-        if not line or line == '\n': break
+        if not line or line.strip() == '': break
         moves.append(line.strip())
     move_list = ' '.join(moves)    
     moves = move_list.split()  #split into tokens 
-	moves.pop()                #get rid of result token 
+    if len(moves) >= 1: moves.pop()               #get rid of result token 
     for token in moves[:]:
         if token[-1] == '.': moves.remove(token)  #remove move number tokens
-	return moves, move_list
+    return moves, move_list
 
 def util_convert2SqlDate(field_value):
     field_value.replace(".","-").replace("??","01")
-    return field_value	
-	
+    return field_value  
+
+def util_processFENLine(line):
+    return ' '.join(line.split()[:-3])     
+    
 
 ###############################################################
 # MAIN
 ##############################################################
-def main():	
+def main(): 
     # Validate number of input parameters
     if len(sys.argv) != 3:
         print("Usage: python fill_tables.py <username> <password>")
@@ -177,17 +203,24 @@ def main():
 
     # Connect to the database and open files
     db = dbConnect(sys.argv[1], sys.argv[2], DATABASE)
+    #db.autocommit = True
     cursor = db.cursor()
-    pgn = open(pgn_file,'r')
-    fen = open(fen_file,'r')
+    pgn = open(PGN_FILE,'r')
+    fen = open(FEN_FILE,'r')
 
-    while true:
-        data_game, current_move_list,  = getGame(pgn)
-        if not current_move_list: break
-        #insert game into the database
-        execSqlWithParams(cursor, sqlInsertGame, data_game)
-        gid = cursor.lastrowid
+    while True:
+        #get data from pgn and fen files
+        data_game, current_move_list, status = getGame(pgn)
+        if status == STATUS_EOF: 
+            print("DEBUG: EOF reached\n")
+            break
+        elif status == STATUS_NO_MOVE_TEXT :
+            print("ERROR: STATUS_NO_MOVE_TEXT \n")
+            continue
         prior_position_list = getPriorPositions(fen)
+        #insert game into the database
+        if execSqlWithParams(cursor, sqlInsertGame, data_game) != 0: continue
+        gid = cursor.lastrowid
         assert( len(prior_position_list) == len(current_move_list) )
         data_played_moves_list = getPlayedMoves(prior_position_list,
                                                 current_move_list)
@@ -197,9 +230,9 @@ def main():
             #get the mid of the played_move
             execSqlWithParams(cursor,sqlSelectPlayedMove,
                                     data_played_move)
-			row = cursor.fetchone()
-			assert(len(row) == 1)
-			mid = row[0]
+            row = cursor.fetchone()
+            assert(row != None and len(row) == 1)
+            mid = row[0]
             data_contained_move = {'gid' : gid,'mid' : mid}  
             #insert contained_move into the DB
             execSqlWithParams(cursor, sqlInsertContained_Moves,
@@ -213,6 +246,7 @@ def main():
    # Close connection to database 
     cursor.close()
     db.close()
+    print("DB CLOSED!!!!")
     
 if __name__ == '__main__':
     status = main()
