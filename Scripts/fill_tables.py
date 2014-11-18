@@ -2,7 +2,9 @@
 # into the database
 
 from __future__ import print_function
+import os
 import sys
+from glob import glob
 import mysql.connector
 from mysql.connector import errorcode
 from datetime import date, datetime
@@ -13,8 +15,8 @@ from math import ceil
 ##############################################################
 DATABASE = "TestChessDB"
 
-PGN_FILE  = "../data/NewTWIC/PGN/twic00920.pgn"
-FEN_FILE = "../data/NewTWIC/FEN/twic00920.fen"
+PGN_DIR  = "../data/NewTWIC/PGN/"
+FEN_DIR = "../data/NewTWIC/FEN/"
 
 START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 START_FEN_PROCESSED = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq" 
@@ -29,7 +31,7 @@ FATAL = 4
 DEBUG_LEVEL = DEBUG
 
 STATUS_EOF = 0
-STATUS_NO_MOVE_TEXT = 1
+STATUS_SHORT_GAME = 1
 STATUS_WELL_FORMED = 2
 
 ##############################################################
@@ -129,8 +131,8 @@ def getGame(pgn):
     data_game['game_source'] = GAME_SRC
     if not moves and move_list == '':
         status = STATUS_EOF
-    elif not moves and move_list != '':
-        status = STATUS_NO_MOVE_TEXT
+    elif len(moves)<=1: #In this case there is no corresponding fen
+        status = STATUS_SHORT_GAME
     else:
         status = STATUS_WELL_FORMED
     return data_game, moves, status 
@@ -195,58 +197,79 @@ def util_processFENLine(line):
 ###############################################################
 # MAIN
 ##############################################################
-def main(): 
-    # Validate number of input parameters
-    if len(sys.argv) != 3:
-        print("Usage: python fill_tables.py <username> <password>")
-        sys.exit()
-
-    # Connect to the database and open files
-    db = dbConnect(sys.argv[1], sys.argv[2], DATABASE)
-    #db.autocommit = True
-    cursor = db.cursor()
-    pgn = open(PGN_FILE,'r')
-    fen = open(FEN_FILE,'r')
+def processFile(pgn_file, fen_file, cursor): 
+    # Open pgn and fen files
+    pgn = open(pgn_file,'r')
+    fen = open(fen_file,'r')
 
     while True:
-        #get data from pgn and fen files
+        # Get data from pgn and fen files
         data_game, current_move_list, status = getGame(pgn)
         if status == STATUS_EOF: 
             print("DEBUG: EOF reached\n")
             break
-        elif status == STATUS_NO_MOVE_TEXT :
-            print("ERROR: STATUS_NO_MOVE_TEXT \n")
+        elif status == STATUS_SHORT_GAME :
+            print("ERROR: STATUS_SHORT_GAME \n")
             continue
         prior_position_list = getPriorPositions(fen)
-        #insert game into the database
+        # Insert game into the database
         if execSqlWithParams(cursor, sqlInsertGame, data_game) != 0: continue
         gid = cursor.lastrowid
         assert( len(prior_position_list) == len(current_move_list) )
         data_played_moves_list = getPlayedMoves(prior_position_list,
                                                 current_move_list)
         for data_played_move in data_played_moves_list:
-            #insert played_move into the DB
+            # Insert played_move into the DB
             execSqlWithParams(cursor, sqlInsertPlayedMove, data_played_move)
-            #get the mid of the played_move
+            # Get the mid of the played_move
             execSqlWithParams(cursor,sqlSelectPlayedMove,
                                     data_played_move)
             row = cursor.fetchone()
             assert(row != None and len(row) == 1)
             mid = row[0]
             data_contained_move = {'gid' : gid,'mid' : mid}  
-            #insert contained_move into the DB
+            # Insert contained_move into the DB
             execSqlWithParams(cursor, sqlInsertContained_Moves,
                               data_contained_move)
 
-    #close files and commit the transaction
+    # Close files
     pgn.close()
     fen.close()
-    db.commit()
     
-   # Close connection to database 
+def main():
+    # Validate number of input parameters
+    start_file = 0; end_file = 99999
+    if len(sys.argv) == 4: start_file = int(sys.argv[3])
+    elif len(sys.argv) == 5: 
+        start_file = int(sys.argv[3]);
+        end_file = int(sys.argv[4])
+    elif len(sys.argv) < 3 or len(sys.argv) > 5:
+        print("Usage: python fill_tables.py <username> <password> [start_#] [end_#]")
+        sys.exit()
+    
+    # Connect to database
+    db = dbConnect(sys.argv[1], sys.argv[2], DATABASE)
+    cursor = db.cursor()
+    
+    for pgn_file in glob(os.path.join(PGN_DIR,'*.pgn')):
+        # Skip if before start_file
+        file_num = int(pgn_file[-9:-4])
+        if file_num < start_file or file_num > end_file: continue
+        #Get FEN file
+        fen_file = 'twic%05d'%file_num + '.fen'
+        fen_file = os.path.join(FEN_DIR,fen_file)
+        # Process file and commit the transaction
+        print("PROCESSING FILE: %s" % pgn_file)
+        print("============================================\n")
+        processFile(pgn_file, fen_file, cursor)
+        db.commit()
+        print( "PROCESSING COMPLETE: %s" %pgn_file)
+        print("============================================\n")
+    # Close connection to database 
     cursor.close()
     db.close()
-    print("DB CLOSED!!!!")
+    if DEBUG_LEVEL <= DEBUG: print("DEBUG: DB CLOSED!!!!")
     
+ 
 if __name__ == '__main__':
     status = main()
