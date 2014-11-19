@@ -68,7 +68,8 @@ CREATE TABLE IF NOT EXISTS Played_Moves ( mid             INTEGER AUTO_INCREMENT
 CREATE TABLE IF NOT EXISTS Contained_Moves ( gid INTEGER,
                                              mid INTEGER,
                                              PRIMARY KEY (gid, mid),
-                                             FOREIGN KEY (gid) REFERENCES Games(gid),
+                                             FOREIGN KEY (gid) REFERENCES Games(gid)
+                                                     ON DELETE CASCADE,
                                              FOREIGN KEY (mid) REFERENCES Played_Moves(mid)
                                                      ON DELETE CASCADE
                                            );
