@@ -13,7 +13,7 @@ from math import ceil
 ##############################################################
 # CONSTANTS
 ##############################################################
-DATABASE = "TestChessDB"
+DATABASE = "ChessDB"
 
 PGN_DIR  = "../data/NewTWIC/PGN/"
 FEN_DIR = "../data/NewTWIC/FEN/"
