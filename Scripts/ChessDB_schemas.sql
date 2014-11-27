@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
                                    Opening               VARCHAR(50),
                                    Variation             VARCHAR(50),
                                    number_of_moves       INTEGER NOT NULL,
-                                   move_list             VARCHAR(1000) NOT NULL,
+                                   move_list             VARCHAR(2500) NOT NULL,
                                    game_source           VARCHAR(20) NOT NULL,
                                    PRIMARY KEY (gid),
                                    UNIQUE (White, Black, Event, Round, Date)
@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS Played_Moves ( mid             INTEGER AUTO_INCREMENT
 CREATE TABLE IF NOT EXISTS Contained_Moves ( gid INTEGER,
                                              mid INTEGER,
                                              PRIMARY KEY (gid, mid),
-                                             FOREIGN KEY (gid) REFERENCES Games(gid),
+                                             FOREIGN KEY (gid) REFERENCES Games(gid)
+                                                     ON DELETE CASCADE,
                                              FOREIGN KEY (mid) REFERENCES Played_Moves(mid)
+                                                     ON DELETE CASCADE
                                            );
