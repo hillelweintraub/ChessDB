@@ -104,11 +104,11 @@ def dbConnect(username, passwd, database):
 def execSql(cursor, sqlStmt):
     try:
         cursor.execute(sqlStmt)
-        if DEBUG_LEVEL <= DEBUG: print("DEBUG: Executing ", cursor._executed, "params:", params, '\n')
+        if DEBUG_LEVEL <= DEBUG: print("DEBUG: Executing ", cursor._executed,'\n')
         return 0
     except mysql.connector.Error as err:
         if DEBUG_LEVEL <= ERROR :
-            print("ERROR: FAILED to execute: ", cursor._executed, "params:", params)
+            print("ERROR: FAILED to execute: ", cursor._executed)
             print("ERROR: mysql.Error %s\n" % err)
         return -1
     

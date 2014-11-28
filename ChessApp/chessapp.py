@@ -3,10 +3,9 @@ from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash
 
 # configuration
-USERNAME = 'admin'
-PASSWORD = 'default'
-DATABASE = '/tmp/flaskr.db'
-HOST ='199.98.20.118'
+USERNAME = 'root'
+PASSWORD = '1234'
+DATABASE = 'ChessDB'
 DEBUG = True
 SECRET_KEY = 'development key'
 
@@ -19,7 +18,7 @@ app.config.from_object(__name__)
 @app.before_request
 def before_request():
     g.db = database.dbConnect(app.config['USERNAME'],app.config['PASSWORD'],
-                              app.config[['DATABASE'],app.config['HOST'])
+                              app.config['DATABASE'])
 
 @app.teardown_request
 def teardown_request(exception):
@@ -57,7 +56,9 @@ def logout():
 def show_entries():
     #cur = g.db.execute('select title, text from entries order by id desc')
     #entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
-    entries = []
+    cursor = g.db.cursor()
+    database.execSql(cursor,database.sqlSelectGames)
+    entries = [dict(gid=row[0], Event=row[1]) for row in cursor.fetchall()]
     return render_template('show_entries.html', entries=entries)
 
 
@@ -72,4 +73,4 @@ def add_entry():
     return redirect(url_for('show_entries'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
