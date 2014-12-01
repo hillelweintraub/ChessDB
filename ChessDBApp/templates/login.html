@@ -1,23 +1,37 @@
 <!doctype html>
-<title>ChessDB</title>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-<div class="page">
-  <h1>ChessDB</h1>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}
-   <h2>Login</h2>
-  {% if error %}<p class="error"><strong>Error:</strong> {{ error }}{% endif %}
-  <form action="{{ url_for('login') }}" method="post">
-    <dl>
-      <dt>Username:
-      <dd><input type="text" name="username"  placeholder="4-20 chars" pattern=".{4,20}"  maxlength="20" size="50" required >
-      <dt>Password:
-      <dd><input type="password" name="password" placeholder="4-20 chars" pattern=".{4,20}" maxlength="20" size="50" required>
-      <dd><input type="submit" value="Login">
-    </dl>
-  </form>
-</div>
+<html>
+<head>
+    <title>ChessDB</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+     {% block head%}{% endblock %}
+</head>
+<body>
 
+    <h1>ChessDB</h1>
 
+    <div class="nav">
+      <ul class="nav">
+        <li class="nav"><a  class="nav" href = "{{ url_for('game_explorer') }}"><h3>Game Explorer</h3></a>
+        <li class="nav"><a  class="nav" href = "{{ url_for('opening_explorer') }}"><h3>Opening Explorer</h3></a>
+        <li class="nav"><a  class="nav"href = "{{ url_for('collection_explorer') }}"><h3>Collection Explorer</h3></a>
+      </ul>
+    </div> 
 
+    <div class="page">
+      {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+       <h2>Login</h2>
+      {% if error %}<p class="error"><strong>Error:</strong> {{ error }}{% endif %}
+      <form action="{{ url_for('login') }}" method="post">
+        <dl>
+          <dt>Username:
+          <dd><input type="text" name="username"  placeholder="4-20 chars" pattern=".{4,20}"  maxlength="20" size="50" required >
+          <dt>Password:
+          <dd><input type="password" name="password" placeholder="4-20 chars" pattern=".{4,20}" maxlength="20" size="50" required>
+          <dd><input type="submit" value="Login">
+        </dl>
+      </form>
+    </div>
+</body>
+</html>

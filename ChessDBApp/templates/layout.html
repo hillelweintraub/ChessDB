@@ -6,16 +6,26 @@
      {% block head%}{% endblock %}
 </head>
 <body>
-    <div class="page">
-      <h1>ChessDB</h1>
-      <div class="metanav">
+     <div class="metanav">
       {% if not session.logged_in %}
         <a href="{{ url_for('login') }}">log in</a>
         <a href="{{ url_for('register') }}">register</a>
       {% else %}
         <a href="{{ url_for('logout') }}">log out</a>
       {% endif %}
-      </div>
+    </div>
+
+    <h1>ChessDB</h1>
+
+    <div class="nav">
+      <ul class="nav">
+        <li class="nav"><a  class="nav" href = "{{ url_for('game_explorer') }}"><h3>Game Explorer</h3></a>
+        <li class="nav"><a  class="nav" href = "{{ url_for('opening_explorer') }}"><h3>Opening Explorer</h3></a>
+        <li class="nav"><a  class="nav"href = "{{ url_for('collection_explorer') }}"><h3>Collection Explorer</h3></a>
+      </ul>
+    </div> 
+
+    <div class="page">
       {% for message in get_flashed_messages() %}
         <div class="flash">{{ message }}</div>
       {% endfor %}

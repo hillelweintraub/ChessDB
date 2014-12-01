@@ -1,25 +1,42 @@
 <!doctype html>
-<title>ChessDB</title>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-<div class="page">
-  <h1>ChessDB</h1>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-  {% endfor %}
-  <h2>Register</h2>
-  {% if error %}<p class="error"><strong>Error:</strong> {{ error }}{% endif %}
-  <form action="{{ url_for('register') }}" method="post">
-    <dl>
-      <dt>*Username:
-      <dd><input type="text" name="username"  placeholder="4-20 chars (e.g chessdude)" pattern=".{4,20}"  maxlength="20" size="50" required >
-      <dt>*Password:
-      <dd><input type="password" name="password" placeholder="4-20 chars" pattern=".{4,20}" maxlength="20" size="50" required>
-      <dt>*Confirm Password:
-      <dd><input type="password" name="cpassword"  placeholder="4-20 chars" pattern=".{4,20}"  maxlength="20" size="50" required>
-      <dt>E-mail:
-      <dd><input type="email" name="email" placeholder="(e.g. chessdude@chessDB.com)"  maxlength="50" size="50">
-       <p> * = required </p>
-      <dd><input type="submit" value="Register">
-    </dl>
-  </form>
-</div>
+<html>
+<head>
+    <title>ChessDB</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+     {% block head%}{% endblock %}
+</head>
+<body>
+
+    <h1>ChessDB</h1>
+
+    <div class="nav">
+      <ul class="nav">
+        <li class="nav"><a  class="nav" href = "{{ url_for('game_explorer') }}"><h3>Game Explorer</h3></a>
+        <li class="nav"><a  class="nav" href = "{{ url_for('opening_explorer') }}"><h3>Opening Explorer</h3></a>
+        <li class="nav"><a  class="nav"href = "{{ url_for('collection_explorer') }}"><h3>Collection Explorer</h3></a>
+      </ul>
+    </div> 
+
+    <div class="page">
+      {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+      <h2>Register</h2>
+      {% if error %}<p class="error"><strong>Error:</strong> {{ error }}{% endif %}
+      <form action="{{ url_for('register') }}" method="post">
+        <dl>
+          <dt>*Username:
+          <dd><input type="text" name="username"  placeholder="4-20 chars (e.g chessdude)" pattern=".{4,20}"  maxlength="20" size="50" required >
+          <dt>*Password:
+          <dd><input type="password" name="password" placeholder="4-20 chars" pattern=".{4,20}" maxlength="20" size="50" required>
+          <dt>*Confirm Password:
+          <dd><input type="password" name="cpassword"  placeholder="4-20 chars" pattern=".{4,20}"  maxlength="20" size="50" required>
+          <dt>E-mail:
+          <dd><input type="email" name="email" placeholder="(e.g. chessdude@chessDB.com)"  maxlength="50" size="50">
+           <p> * = required </p>
+          <dd><input type="submit" value="Register">
+        </dl>
+      </form>
+  </div>
+</body>
+</html>

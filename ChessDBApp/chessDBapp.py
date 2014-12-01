@@ -113,7 +113,7 @@ def logout():
 
 @app.route('/collection_explorer',methods=['GET', 'POST'])
 def collection_explorer():
-    print("Collection Explorer page")
+    return render_template('collection_explorer.html')
     #todo; fill in
     # if request.method == 'POST':
     #     pass
@@ -127,9 +127,9 @@ def collection_explorer():
         #                                        UNIQUE (cname, uuid),
         #                                        FOREIGN KEY (uuid) REFERENCES Users(uuid)
 
-@app.route('/opening_explorer')
+@app.route('/opening_explorer',methods=['GET', 'POST'])
 def opening_explorer():
-    print("Opening Exploer page") 
+    return render_template('opening_explorer.html')
     #todo: fill in
 
 def build_game_explorer_query(form):
