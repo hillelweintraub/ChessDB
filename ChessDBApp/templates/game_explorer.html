@@ -54,6 +54,7 @@
         <br>
         <table style="width:100%" class="entries">
             <tr>
+                <th>View</th>
                 <th>Date</th>
                 <th>White</th>   
                 <th>Black</th>
@@ -69,6 +70,12 @@
             </tr>
             {% for game in entries %}
             <tr>
+                <td>
+                    <form action="{{ url_for('pgn_viewer') }}" method="post">
+                        <input type="number" name="gid" value="{{game.gid}}" hidden>
+                        <input type="submit" value="view">
+                    </form>
+                </td>
                 <td>{{ game.Date }}</td>
                 <td>{{ game.White }}</td>
                 <td>{{ game.Black }}</td>
