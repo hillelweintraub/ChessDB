@@ -29,9 +29,26 @@ def teardown_request(exception):
         db.commit()
         db.close()
 
-@app.route('/')
-def show_game_explorer_page():
-    return render_template('game_explorer.html')
+@app.route('/', methods=['GET', 'POST'])
+def game_explorer():
+    games = None
+    if request.method == 'POST':
+        cursor = g.db.cursor()
+        game_explorer_query = build_game_explorer_query(request.form)
+        if not game_explorer_query:
+            flash('Search was not specific enough')
+            return redirect(url_for('game_explorer'))
+        database.execSqlWithParams(cursor, game_explorer_query, request.form)
+
+        games = \
+            [dict(Date=row[0],White=row[1],Black=row[2],WhiteElo=row[3],
+                  BlackElo=row[4], Event=row[5],Site=row[6],ECO=row[7],
+                  Opening=row[8],Variation=row[9],Round=row[10],Result=row[11],
+                  number_of_moves=row[12]
+                  ) for row in cursor.fetchall()]
+        cursor.close()
+        if not games: flash("Search didn't match any games.")   
+    return render_template('game_explorer.html', entries=games)
    # return render_template('show_entries.html')
 
 @app.route('/pgn_viewer')
@@ -55,7 +72,7 @@ def register():
             rc = database.execSqlWithParams(cursor, database.sqlInsertUser, form)
             if rc == 0:
                 flash('Congratulations! You were successfully registered. You can now log in.')
-                return redirect(url_for('show_game_explorer_page'))
+                return redirect(url_for('game_explorer'))
             else:
                 error = 'Somebody is already registered with this username and password. Please choose something different.'
     return render_template('register.html', error=error)
@@ -77,7 +94,7 @@ def login():
             session['uuid'] = uuid
             session['username']  = username
             flash('Congratulations! You have successfully logged in.')
-            return redirect(url_for('pgn_viewer'))
+            return redirect(url_for('game_explorer'))
     return render_template('login.html', error=error)
 
 @app.route('/logout')
@@ -86,7 +103,7 @@ def logout():
     session.pop('uuid',None)
     session.pop('username',None)
     flash('Congratulations! You have seccuessfully logged out')
-    return redirect(url_for('show_game_explorer_page'))
+    return redirect(url_for('game_explorer'))
 
 
   #   "(%(Site)s, %(Event)s, %(Round)s, %(Date)s, %(White)s, %(Black)s, "
@@ -94,31 +111,12 @@ def logout():
   # "%(Result)s, %(ECO)s, %(Opening)s, %(Variation)s, "
   # "%(number_of_moves)s, %(move_list)s, %(game_source)s) "
 
-@app.route('/find_games',methods=['POST'])
-def find_games():
-    cursor = g.db.cursor()
-    find_games_query = build_find_games_query(request.form)
-    if not find_games_query:
-        flash('Search was not specific enough')
-        return redirect(url_for('show_game_explorer_page'))
-    database.execSqlWithParams(cursor,find_games_query,request.form)
-
-    games = \
-        [dict(Date=row[0],White=row[1],Black=row[2],WhiteElo=row[3],
-              BlackElo=row[4], Event=row[5],Site=row[6],ECO=row[7],
-              Opening=row[8],Variation=row[9],Round=row[10],Result=row[11],
-              number_of_moves=row[12]
-              ) for row in cursor.fetchall()]
-    cursor.close()
-    return render_template('show_entries.html', entries=games)
-
-
-
-@app.route('/game_explorer',methods=['GET', 'POST'])
-def game_explorer():
-    #sql
-    if request.method == 'POST':
-        pass
+@app.route('/collection_explorer',methods=['GET', 'POST'])
+def collection_explorer():
+    print("Collection Explorer page")
+    #todo; fill in
+    # if request.method == 'POST':
+    #     pass
         # ( cid                 INTEGER AUTO_INCREMENT,
         #                             cname               VARCHAR(50) NOT NULL,
         #                             uuid                INTEGER NOT NULL,
@@ -129,18 +127,13 @@ def game_explorer():
         #                                        UNIQUE (cname, uuid),
         #                                        FOREIGN KEY (uuid) REFERENCES Users(uuid)
 
-@app.route('/add', methods=['POST'])
-def add_entry():
-    if not session.get('logged_in'):
-        abort(401)
-    g.db.execute('insert into entries (title, text) values (?, ?)',
-                 [request.form['title'], request.form['text']])
-    g.db.commit()
-    flash('New entry was successfully posted')
-    return redirect(url_for('game_explorer'))
+@app.route('/opening_explorer')
+def opening_explorer():
+    print("Opening Exploer page") 
+    #todo: fill in
 
-def build_find_games_query(form):
-    find_games_query = ("SELECT g.Date, g.White, g.Black, g.WhiteElo, "
+def build_game_explorer_query(form):
+    game_explorer_query = ("SELECT g.Date, g.White, g.Black, g.WhiteElo, "
                         "g.BlackElo, g.Event, g.Site, g.ECO, g.Opening, "
                         "g.Variation, g.Round, g.Result, g.number_of_moves "
                         " From Games g ")
@@ -168,8 +161,8 @@ def build_find_games_query(form):
 
     if not where_clause_list: return '' # no fields in form were filled in 
     where_clause = "WHERE " + 'AND '.join(where_clause_list)
-    find_games_query+= where_clause
-    return find_games_query
+    game_explorer_query+= where_clause
+    return game_explorer_query
 
 
 def show_entries():
