@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h2>Find Games:</h2>
+    <form action="{{ url_for('find_games') }}" method="post">
+        <dl>
+            <dt>ELO:</dt>
+            <dd> 
+                <input type="number" name="elo_min" placeholder="min" size="15"> 
+                <input type="number" name="elo_max" placeholder="max" size="15"> 
+            </dd>
+             
+            <dt>Date:</dt>
+            <dd>
+                <input type="date" name="date_min" placeholder="min" size="15"> 
+                <input type="date" name="date_max" placeholder="max" size="15">
+            </dd>
+
+            <dt>Number of moves:</dt>
+            <dd>
+                <input type="number" name="num_moves_min" placeholder="min" size="15">
+                <input type="number" name="num_moves_max" placeholder="max" size="15">
+            </dd>
+
+            <dt>White Player:</dt>
+            <dd>
+                <input list="white_player" name="white_player"> 
+                <datalist id="white_player" size="15">
+                    <option value="Internet Explorer">
+                    <option value="Firefox">
+                </datalist> 
+            </dd>
+
+            <dt>Black Player:</dt>
+            <dd>
+                <input list="black_player" name="black_player">
+                <datalist id="black_player" size="15">
+                    <option value="Internet Explorer">
+                    <option value="Firefox">
+                </datalist> 
+            </dd>
+
+            <dt>ECO:</dt>
+            <dd> 
+                <input type="text" name="eco" placeholder="A00-Z99" size="15"> 
+            </dd>
+
+            <dd><input type="submit" value="Find games">
+        </dl>
+    </form>
+{% endblock %}
+

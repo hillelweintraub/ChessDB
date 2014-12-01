@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>Your Collections</h2>
+  <form action="{{ url_for('login') }}" method="post">
+    <dl>
+      <dt>Collection name:
+      <dd><input type="text" name="collection_name" maxlength="50" size="50" required>
+      <dt>Description:
+      <dd><textarea name="description" rows="5" cols="40" maxlength="150"></textarea>
+      <dt>Tag:
+      <dd><input type="text" name="tag" maxlength="20" size="30">
+      <dd><input type="submit" value="Create new collection">
+    </dl>
+  </form>
+{% endblock %}
