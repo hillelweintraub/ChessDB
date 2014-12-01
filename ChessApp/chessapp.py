@@ -125,21 +125,21 @@ def show_entries():
     return render_template('show_entries.html', entries=entries)
 
 @app.route('/game_explorer',methods=['GET', 'POST'])
-def game_explorer:
-    sql
+def game_explorer():
+    #sql
     if request.method == 'POST':
+        pass
 
 
-
-        ( cid                 INTEGER AUTO_INCREMENT,
-                                    cname               VARCHAR(50) NOT NULL,
-                                    uuid                INTEGER NOT NULL,
-                                    description         VARCHAR(150),
-                                    tag                 VARCHAR(20),
-                                    date_last_modified  TIMESTAMP NOT NULL,
-                                               PRIMARY KEY (cid),
-                                               UNIQUE (cname, uuid),
-                                               FOREIGN KEY (uuid) REFERENCES Users(uuid)
+        # ( cid                 INTEGER AUTO_INCREMENT,
+        #                             cname               VARCHAR(50) NOT NULL,
+        #                             uuid                INTEGER NOT NULL,
+        #                             description         VARCHAR(150),
+        #                             tag                 VARCHAR(20),
+        #                             date_last_modified  TIMESTAMP NOT NULL,
+        #                                        PRIMARY KEY (cid),
+        #                                        UNIQUE (cname, uuid),
+        #                                        FOREIGN KEY (uuid) REFERENCES Users(uuid)
 
 @app.route('/add', methods=['POST'])
 def add_entry():
