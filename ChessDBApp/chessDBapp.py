@@ -44,16 +44,25 @@ def game_explorer():
             [dict(Date=row[0],White=row[1],Black=row[2],WhiteElo=row[3],
                   BlackElo=row[4], Event=row[5],Site=row[6],ECO=row[7],
                   Opening=row[8],Variation=row[9],Round=row[10],Result=row[11],
-                  number_of_moves=row[12]
+                  number_of_moves=row[12],gid=row[13]
                   ) for row in cursor.fetchall()]
         cursor.close()
         if not games: flash("Search didn't match any games.")   
     return render_template('game_explorer.html', entries=games)
    # return render_template('show_entries.html')
 
-@app.route('/pgn_viewer')
+@app.route('/pgn_viewer',methods=['POST'])
 def pgn_viewer():
-   return render_template('pgn_viewer.html')
+    cursor = g.db.cursor()
+    game_query = ("SELECT g.White, g.Black, g.Event, g.move_list "
+                  "From Games g "
+                  "WHERE g.gid = %(gid)s"
+                 )
+    database.execSqlWithParams(cursor, game_query, request.form)
+    row = cursor.fetchone()
+    game = dict(White=row[0],Black=row[1],Event=row[2],move_list=row[3])
+    cursor.close()
+    return render_template('pgn_viewer.html',game=game)
     
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -70,6 +79,7 @@ def register():
         else:
             cursor = g.db.cursor()
             rc = database.execSqlWithParams(cursor, database.sqlInsertUser, form)
+            cursor.close()
             if rc == 0:
                 flash('Congratulations! You were successfully registered. You can now log in.')
                 return redirect(url_for('game_explorer'))
@@ -86,6 +96,7 @@ def login():
         cursor = g.db.cursor()
         database.execSqlWithParams(cursor, database.sqlSelectUser, request.form)
         userInfo = cursor.fetchone()
+        cursor.close()
         if  userInfo == None:
             error = 'Invalid username or password'
         else:
@@ -114,6 +125,23 @@ def logout():
 @app.route('/collection_explorer',methods=['GET', 'POST'])
 def collection_explorer():
     print("Collection Explorer page")
+    cursor = g.db.cursor()
+    insert_collection_statement = \
+        ("INSERT INTO Owned_Collections "
+         "(cname, uuid, description, tag, date_last_modified) "
+         "VALUES "
+         "(%(cname)s, %(uuid)s, %(description)s, %(tag)s, %(date_last_modified)s)"
+        ) 
+    status = database.execSqlWithParams(cursor, insert_collection_statement,
+                                        collection)
+    cursor.close()
+    if status == 0:
+        flash("You have successfully created a collection!")
+        return redirect(url_for('collection_explorer'))
+    else:
+        flash("A problem occurred! Unable to create collection.")
+        return redirect(url_for('collection_explorer'))
+
     #todo; fill in
     # if request.method == 'POST':
     #     pass
@@ -135,8 +163,8 @@ def opening_explorer():
 def build_game_explorer_query(form):
     game_explorer_query = ("SELECT g.Date, g.White, g.Black, g.WhiteElo, "
                         "g.BlackElo, g.Event, g.Site, g.ECO, g.Opening, "
-                        "g.Variation, g.Round, g.Result, g.number_of_moves "
-                        " From Games g ")
+                        "g.Variation, g.Round, g.Result, g.number_of_moves, g.gid "
+                        "From Games g ")
     where_clause_list = []
     if form['elo_min']:
         where_clause_list.append("g.WhiteElo >= %(elo_min)s AND "
