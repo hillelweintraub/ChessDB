@@ -32,5 +32,8 @@ a:active.nav    { font-weight:bold; padding:10px 10px 10px 10px; }
 
 .error          { background: #F0D6D6; padding: 0.5em; }
 
-table, th, td   { border: 1px solid black; border-collapse: collapse; }
-th, td          { padding: 5px; }
+.entries table,
+.entries th,
+.entries td     { border: 1px solid black; border-collapse: collapse; }
+.entries th,
+.entries td     { padding: 5px; }

@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS Owned_Collections ( cid                 INTEGER AUTO_
                                                uuid                INTEGER NOT NULL,
                                                description         VARCHAR(150),
                                                tag                 VARCHAR(20),
-                                               date_last_modified  TIMESTAMP NOT NULL,
+                                               date_last_modified  TIMESTAMP NOT NULL
+                                                                             DEFAULT CURRENT_TIMESTAMP
+                                                                             ON UPDATE CURRENT_TIMESTAMP,
                                                PRIMARY KEY (cid),
                                                UNIQUE (cname, uuid),
                                                FOREIGN KEY (uuid) REFERENCES Users(uuid)
