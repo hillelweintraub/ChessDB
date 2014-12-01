@@ -116,45 +116,40 @@ def logout():
     flash('Congratulations! You have seccuessfully logged out')
     return redirect(url_for('game_explorer'))
 
-
-  #   "(%(Site)s, %(Event)s, %(Round)s, %(Date)s, %(White)s, %(Black)s, "
-  # "%(WhiteTitle)s, %(BlackTitle)s, %(WhiteElo)s, %(BlackElo)s, "
-  # "%(Result)s, %(ECO)s, %(Opening)s, %(Variation)s, "
-  # "%(number_of_moves)s, %(move_list)s, %(game_source)s) "
-
 @app.route('/collection_explorer',methods=['GET', 'POST'])
 def collection_explorer():
-    return render_template('collection_explorer.html')
-    print("Collection Explorer page")
+    if not session['logged_in']:
+        flash("You must log in to view your collections.")
+        return redirect(url_for('login'))
     cursor = g.db.cursor()
-    insert_collection_statement = \
-        ("INSERT INTO Owned_Collections "
-         "(cname, uuid, description, tag, date_last_modified) "
-         "VALUES "
-         "(%(cname)s, %(uuid)s, %(description)s, %(tag)s, %(date_last_modified)s)"
-        ) 
-    status = database.execSqlWithParams(cursor, insert_collection_statement,
-                                        collection)
+    if request.method == 'POST':
+        insert_collection_statement = \
+            ("INSERT INTO Owned_Collections "
+             "(cname, uuid, description, tag) "
+             "VALUES "
+             "(%(cname)s, %(uuid)s, %(description)s, %(tag)s)"
+            ) 
+        collection  = {k:v for k,v in request.form.iteritems()}
+        collection[uuid] = session['uuid']
+        status = database.execSqlWithParams(cursor, insert_collection_statement,
+                                            collection)
+        cursor.close()
+        if status == 0:
+            flash("You have successfully created a collection!")
+            return redirect(url_for('collection_explorer'))
+        else:
+            flash("A problem occurred! Unable to create collection.")
+            return redirect(url_for('collection_explorer'))
+    collection_query = ("SELECT c.cname, c.description, c.tag, c.date_last_modified "
+                        "ORDER BY date_last_modified DESC "
+                        "From Owned_Collections c "
+                        "WHERE c.uuid = %(uuid)s"
+                       )
+    database.execSqlWithParams(cursor, collection_query, session)
+    collections = [dict(cname=row[0],description=row[1],
+                        tag=row[2]) for row in cursor.fetchall()]
     cursor.close()
-    if status == 0:
-        flash("You have successfully created a collection!")
-        return redirect(url_for('collection_explorer'))
-    else:
-        flash("A problem occurred! Unable to create collection.")
-        return redirect(url_for('collection_explorer'))
-
-    #todo; fill in
-    # if request.method == 'POST':
-    #     pass
-        # ( cid                 INTEGER AUTO_INCREMENT,
-        #                             cname               VARCHAR(50) NOT NULL,
-        #                             uuid                INTEGER NOT NULL,
-        #                             description         VARCHAR(150),
-        #                             tag                 VARCHAR(20),
-        #                             date_last_modified  TIMESTAMP NOT NULL,
-        #                                        PRIMARY KEY (cid),
-        #                                        UNIQUE (cname, uuid),
-        #                                        FOREIGN KEY (uuid) REFERENCES Users(uuid)
+    return render_template('collection_explorer.html', collections = collections)
 
 @app.route('/opening_explorer',methods=['GET', 'POST'])
 def opening_explorer():
