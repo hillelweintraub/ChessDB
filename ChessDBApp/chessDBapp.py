@@ -118,7 +118,7 @@ def logout():
 
 @app.route('/collection_explorer',methods=['GET', 'POST'])
 def collection_explorer():
-    if not session['logged_in']:
+    if not 'logged_in' in session:
         flash("You must log in to view your collections.")
         return redirect(url_for('login'))
     cursor = g.db.cursor()
@@ -130,7 +130,7 @@ def collection_explorer():
              "(%(cname)s, %(uuid)s, %(description)s, %(tag)s)"
             ) 
         collection  = {k:v for k,v in request.form.iteritems()}
-        collection[uuid] = session['uuid']
+        collection['uuid'] = session['uuid']
         status = database.execSqlWithParams(cursor, insert_collection_statement,
                                             collection)
         cursor.close()
@@ -140,16 +140,22 @@ def collection_explorer():
         else:
             flash("A problem occurred! Unable to create collection.")
             return redirect(url_for('collection_explorer'))
-    collection_query = ("SELECT c.cname, c.description, c.tag, c.date_last_modified "
-                        "ORDER BY date_last_modified DESC "
+    collection_query = ("SELECT c.cname, c.description, c.tag, "
+                        "c.date_last_modified, c.cid "
                         "From Owned_Collections c "
-                        "WHERE c.uuid = %(uuid)s"
+                        "WHERE c.uuid = %(uuid)s "
+                        "ORDER BY date_last_modified DESC"
                        )
-    database.execSqlWithParams(cursor, collection_query, session)
+    params = dict(uuid=session['uuid'])
+    database.execSqlWithParams(cursor, collection_query, params)
     collections = [dict(cname=row[0],description=row[1],
-                        tag=row[2]) for row in cursor.fetchall()]
+                        tag=row[2],cid=row[4]) for row in cursor.fetchall()]
     cursor.close()
     return render_template('collection_explorer.html', collections = collections)
+
+@app.route('/show_collection_games/<cid>')
+def show_collection_games(cid):
+    return 'your cid is %s'%cid
 
 @app.route('/opening_explorer',methods=['GET', 'POST'])
 def opening_explorer():
