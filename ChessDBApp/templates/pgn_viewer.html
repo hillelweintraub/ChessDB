@@ -1,9 +1,11 @@
 {% extends "layout.html" %}
+
 {% block  head %}
 <script language="JavaScript" src="../static/pgnviewer/js/ltpgnviewer.js"></script>
 <script language="JavaScript" src="../static/pgnviewer/js/ltpgnboard.js"></script>
 <link rel=stylesheet type="text/css" href="../static/pgnviewer/css/ltpgnviewer.css" />
 {% endblock %}
+
 {% block body %}
 <script language="JavaScript">
 document.writeln("<table border=0><tr><td><FORM name=BoardForm><table border=0><tr><td>");
@@ -15,7 +17,6 @@ WritePosition();
 document.writeln("</td></tr></table></FORM>");
 Init('');
 AllowRecording(false);
-//write the following with ASP or PHP depending on your data from a database:
 RotateBoard(true);
 ApplyPgnMoveText("{{game.move_list}}");
 AddText("</td><td>"+"<H3>{{game.White}} vs. {{game.Black}}</H3>"+GetHTMLMoveText(0,0,1));
@@ -24,4 +25,24 @@ setTimeout('RefreshBoard(true)',1000);
 if (window.event) document.captureEvents(Event.KEYDOWN);
 document.onkeydown = KeyDown;
 </script>
+{% if session.logged_in %}
+<div class="AddToCollection">
+	
+	 <form action="{{ url_for('add_to_collection') }}" id="addToCollectionForm" method="post">
+	 	<fieldset>
+	 	<legend>Add this game to:</legend>
+		<select name=cid form="addToCollectionForm">
+		{% for collection in collections %}       
+			<option value={{collection.cid}}> {{collection.cname|safe}}</option>"   
+	    {% endfor %} 
+	    </select>	
+	    <input type="number" name="gid" value="{{game.gid}}" hidden>
+        <input type="submit" value="Add to Collection">
+        </fieldset>
+    </form>
+
+
+</div>	
+{% endif %}
+
 {% endblock %}

@@ -51,18 +51,36 @@ def game_explorer():
     return render_template('game_explorer.html', entries=games)
    # return render_template('show_entries.html')
 
-@app.route('/pgn_viewer',methods=['POST'])
+@app.route('/pgn_viewer',methods=['GET','POST'])
 def pgn_viewer():
+    collections = None
     cursor = g.db.cursor()
-    game_query = ("SELECT g.White, g.Black, g.Event, g.move_list "
+    game_query = ("SELECT g.White, g.Black, g.Event, g.move_list, g.gid "
                   "From Games g "
                   "WHERE g.gid = %(gid)s"
                  )
-    database.execSqlWithParams(cursor, game_query, request.form)
+
+    form  = {k:v for k,v in request.form.iteritems()}
+    if 'gid' not in form: #re-entry from failed add to collection
+        print("RE-ENTRY")
+        form['gid'] = session.get('gid')
+        session.pop('gid', None)
+    print(form)    
+    database.execSqlWithParams(cursor, game_query, form)
     row = cursor.fetchone()
-    game = dict(White=row[0],Black=row[1],Event=row[2],move_list=row[3])
+    game = dict(White=row[0],Black=row[1],Event=row[2],move_list=row[3], gid=[4])
+ 
+    if 'logged_in' in session:
+        uuid ={'uuid': session['uuid']}
+        collection_query = ("SELECT c.cid, c.cname  "
+                            "From Owned_Collections c "
+                            "WHERE c.uuid = %(uuid)s "
+                            "ORDER BY c.cname"
+                           )
+        database.execSqlWithParams(cursor, collection_query, uuid)
+        collections = [dict(cid=row[0],cname=row[1]) for row in cursor.fetchall()]  
     cursor.close()
-    return render_template('pgn_viewer.html',game=game)
+    return render_template('pgn_viewer.html',game=game, collections=collections)
     
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -71,7 +89,7 @@ def register():
         form  = {k:v for k,v in request.form.iteritems()}
         if not form['email']: form['email'] = None 
         if  DEBUG:
-            print ("REGISTERING with username=%(username)s, password=%(password)s, "
+            print("REGISTERING with username=%(username)s, password=%(password)s, "
                      "cpassword=%(cpassword)s email=%(email)s" % form)
          #Check that  password == cpassword
         if request.form.get('password') != request.form.get('cpassword'):
@@ -92,7 +110,7 @@ def login():
     error = None
     if request.method == 'POST':
         if DEBUG:
-            print ("LOGGING IN with username=%(username)s, password=%(password)s" % request.form)  
+            print("LOGGING IN with username=%(username)s, password=%(password)s" % request.form)  
         cursor = g.db.cursor()
         database.execSqlWithParams(cursor, database.sqlSelectUser, request.form)
         userInfo = cursor.fetchone()
@@ -140,16 +158,39 @@ def collection_explorer():
         else:
             flash("A problem occurred! Unable to create collection.")
             return redirect(url_for('collection_explorer'))
+    uuid ={'uuid': session['uuid']}
     collection_query = ("SELECT c.cname, c.description, c.tag, c.date_last_modified "
-                        "ORDER BY date_last_modified DESC "
                         "From Owned_Collections c "
-                        "WHERE c.uuid = %(uuid)s"
+                        "WHERE c.uuid = %(uuid)s "
+                        "ORDER BY date_last_modified DESC "
                        )
-    database.execSqlWithParams(cursor, collection_query, session)
+    database.execSqlWithParams(cursor, collection_query, uuid)
     collections = [dict(cname=row[0],description=row[1],
                         tag=row[2]) for row in cursor.fetchall()]
     cursor.close()
     return render_template('collection_explorer.html', collections = collections)
+
+@app.route('/add_to_collection',methods=['POST'])
+def add_to_collection():
+    print('ADD TO COLLECTION FORM:', request.form)
+    cursor = g.db.cursor()
+    insert_contained_game_statement = ("INSERT INTO Contained_Games "
+                                       "(cid, gid) "
+                                       "VALUES "
+                                       "(%(cid)s, %(gid)s)"
+                                      ) 
+    status = database.execSqlWithParams(cursor,
+                                        insert_contained_game_statement,
+                                        request.form)
+    cursor.close()
+    if status == 0:
+        flash("You have successfully added a game to a collection!")
+        return redirect(url_for('collection_explorer'))
+    else:
+        flash("A problem occurred! Unable to add game to collection.")
+        session['gid'] = request.form['gid']
+        return redirect(url_for('pgn_viewer'))
+
 
 @app.route('/opening_explorer',methods=['GET', 'POST'])
 def opening_explorer():
