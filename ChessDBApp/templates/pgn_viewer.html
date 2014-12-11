@@ -27,6 +27,7 @@ setTimeout('RefreshBoard(true)',1000);
 if (window.event) document.captureEvents(Event.KEYDOWN);
 document.onkeydown = KeyDown;
 </script>
+<<<<<<< HEAD
 
 
 
@@ -323,6 +324,9 @@ document.onkeydown = KeyDown;
 
 
 {% if session.logged_in %}
+=======
+{% if current_user.is_authenticated() %}
+>>>>>>> aa0bc4ff5fac92ff528c8637825a6f78661922e7
 <div class="AddToCollection">
 	
 	 <form action="{{ url_for('add_to_collection') }}" id="addToCollectionForm" method="post">
@@ -338,6 +342,7 @@ document.onkeydown = KeyDown;
 	    Label:
 	    <input type="text" name="label" placeholder="Optional label (80 chars max)" maxlength=80 size=80 >
 	    <input type="number" name="gid" value="{{game.gid}}" hidden>
+        <input type="text" name="label" placeholder="optional label (max 80 chars)" maxlength=80 size=100>
         <input type="submit" value="Add to Collection">
         {% else %}
         <em>

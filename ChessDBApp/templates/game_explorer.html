@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
     <h2>Game Explorer</h2>
-    <form action="{{ url_for('game_explorer') }}" method="post">
+    <form action="{{ url_for('game_explorer') }}" id="game_explorer_form" method="post">
         <fieldset>
         <legend>Search Criteria:</legend>
         <dl>
@@ -25,20 +25,20 @@
 
             <dt>White Player:</dt>
             <dd>
-                <input list="white_player" name="white_player"> 
-                <datalist id="white_player" size="15">
-                    <option value="Internet Explorer">
-                    <option value="Firefox">
-                </datalist> 
+                <select name="white_player" form="game_explorer_form">
+                {% for player in white_players %}       
+                    <option value="{{player.name}}" size="15">{{player.name}}</option>   
+                {% endfor %} 
+                </select>   
             </dd>
 
             <dt>Black Player:</dt>
             <dd>
-                <input list="black_player" name="black_player">
-                <datalist id="black_player" size="15">
-                    <option value="Internet Explorer">
-                    <option value="Firefox">
-                </datalist> 
+                <select name="black_player" form="game_explorer_form">
+                {% for player in black_players %}       
+                    <option value="{{player.name}}" size="15">{{player.name}}</option>   
+                {% endfor %} 
+                </select>   
             </dd>
 
             <dt>ECO:</dt>
@@ -50,8 +50,12 @@
         </dl>
         </fieldset>
     </form>
+    
     <fieldset>
     <legend> Results: </legend> <br>
+    {% if entries %}
+        <em>{{number_of_matches}} game(s) matched the search </em><br>
+    {% end if %}    
         <div class="entries">
             <table style="width:100%" class="entries">
                 <tr>
@@ -99,8 +103,27 @@
                 </tr>
                 {% endif %}      
             </table>
-        </div>
-    
+        </div>    
     </fieldset>
+
+    {% if entries %}    
+        <div class=pagination>
+          {%- for page in pagination.iter_pages() %}
+            {% if page %}
+              {% if page != pagination.page %}
+                <a href="{{ url_for_other_page(page) }}">{{ page }}</a>
+              {% else %}
+                <strong>{{ page }}</strong>
+              {% endif %}
+            {% else %}
+              <span class=ellipsis>…</span>
+            {% endif %}
+          {%- endfor %}
+          {% if pagination.has_next %}
+            <a href="{{ url_for_other_page(pagination.page + 1)
+              }}">Next &raquo;</a>
+          {% endif %}
+        </div>
+    {% endif %}
 {% endblock %}
 

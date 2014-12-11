@@ -23,7 +23,54 @@
             </h2>
             {{ collection.description|safe }}<br>
             {{ collection.tag|safe }}
+            <button onclick="delete_collection({{collection.cid}})">Delete Collection</button>
+            <script>
+                function delete_collection(cid){
+                    var confirmed = confirm("Are you sure you want to delete a collection?")
+                    if (confirmed)
+                        window.location.assign("/delete_collection/"+cid)
+                }
+            </script>
         </li>
+            {% if cid==collection.cid %}
+                <table style="width:100%" class="entries">
+                    <tr>
+                        <th>View</th>
+                        <th>Label</th>
+                        <th>White</th>   
+                        <th>Black</th>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Delete</th>
+                    </tr>
+                    {% for game in games %}
+                    <tr>
+                        <td>
+                            <form action="{{ url_for('pgn_viewer') }}" method="post">
+                                <input type="number" name="gid" value="{{game.gid}}" hidden>
+                                <input type="submit" value="view">
+                            </form>                            
+                            <script>
+                                function delete_contained_game(cid,gid){
+                                    var confirmed = confirm("Are you sure you want to delete a game?")
+                                    if (confirmed)
+                                        window.location.assign(
+                                            "/delete_contained_game/"+cid+"/"+gid)
+                                }
+                            </script>
+                        </td>                        
+                        <td>{{ game.label }}</td>
+                        <td>{{ game.White }}</td>
+                        <td>{{ game.Black }}</td>                        
+                        <td>{{ game.Event }}</td>
+                        <td>{{ game.Date }}</td> 
+                        <td>
+                            <button onclick="delete_contained_game({{collection.cid}},{{ game.gid }})">Delete</button>
+                        </td>                       
+                    </tr>   
+                    {% endfor %}   
+                </table>
+            {% endif %}
         {% else %}
         <li><em>You have not created any collections yet.</em>
         {% endfor %}
