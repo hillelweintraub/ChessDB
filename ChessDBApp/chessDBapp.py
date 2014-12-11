@@ -93,7 +93,7 @@ def register():
             if rc == 0:
                 flash('Congratulations! You were successfully registered.'
                       ' You can now log in.')
-                return redirect(url_for('game_explorer'))
+                return redirect(url_for('login'))
             else:
                 error = ('Somebody is already registered with this username.'
                          'Please choose something different.')

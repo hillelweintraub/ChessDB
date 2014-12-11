@@ -1,35 +1,52 @@
 {% extends "layout.html" %}
 
-{% block  head %}
-<script language="JavaScript" src="../static/pgnviewer/js/ltpgnviewer.js"></script>
-<script language="JavaScript" src="../static/pgnviewer/js/ltpgnboard.js"></script>
-<link rel=stylesheet type="text/css" href="../static/pgnviewer/css/ltpgnviewer.css" />
-{% endblock %}
+{% block  head %}
+<script language="JavaScript" src="../static/pgnviewer/js/ltpgnviewer.js"></script>
+<script language="JavaScript" src="../static/pgnviewer/js/ltpgnboard.js"></script>
+<link rel=stylesheet type="text/css" href="../static/pgnviewer/css/ltpgnviewer.css" />
+{% endblock %}
 
-{% block body %}
-<script language="JavaScript">
-document.writeln("<table border=0><tr><td><FORM name=BoardForm><table border=0><tr><td>");
-// if ((BGColor!="")&&(document.getElementsByTagName)) document.getElementsByTagName('BODY')[0].style.backgroundColor=BGColor;
-if (ImagePath!="") SetBorder(0);
-WriteBoard(1);
-WriteButtons();
-WritePosition();
+{% block body %}
+<script language="JavaScript">
+document.writeln("<table border=0><tr><td><FORM name=BoardForm><table border=0><tr><td>");
+if ((BGColor!="")&&(document.getElementsByTagName)) document.getElementsByTagName('BODY')[0].style.backgroundColor=BGColor;
+if (ImagePath!="") SetBorder(0);
+WriteBoard(1);
+WriteButtons();
+WritePosition();
+document.writeln("</td></tr></table></FORM>");
+Init('');
+AllowRecording(false);
+RotateBoard(true);
+ApplyPgnMoveText("{{game.move_list}}");
+AddText("</td><td>"+"<H3>{{game.White}} vs. {{game.Black}}</H3>"+GetHTMLMoveText(0,0,1));
+document.writeln("</td></tr></table>");
+setTimeout('RefreshBoard(true)',1000);
+if (window.event) document.captureEvents(Event.KEYDOWN);
+document.onkeydown = KeyDown;
+</script>
+{% if current_user.is_authenticated() %}
+<div class="AddToCollection">
+	
+	 <form action="{{ url_for('add_to_collection') }}" id="addToCollectionForm" method="post">
+	 	<fieldset>
+	 	<legend>Add this game to:</legend>
+		<select name=cid form="addToCollectionForm">
+		{% for collection in collections %}       
+			<option value={{collection.cid}}> {{collection.cname|safe}}</option>"   
+	    {% endfor %} 
+	    </select>	
+	    <input type="number" name="gid" value="{{game.gid}}" hidden>
+        <input type="text" name="label" placeholder="optional label (max 80 chars)" maxlength=80 size=100>
+        <input type="submit" value="Add to Collection">
+        </fieldset>
+    </form>
 
-document.writeln("</td></tr></table></FORM>");
-Init('');
-AllowRecording(false);
-RotateBoard(false);
-document.writeln("<form><input type=checkbox name='rotated' value=1 onClick='javascript:RotateBoard(this.checked)'>rotate board</form>")
-ApplyPgnMoveText("{{game.move_list}}");
-document.writeln("</td><td>"+"<H3>{{game.White}} vs. {{game.Black}}</H3>"+GetHTMLMoveText(0,0,1));
-document.writeln("</td></tr></table>");
-setTimeout('RefreshBoard(true)',1000);
-if (window.event) document.captureEvents(Event.KEYDOWN);
-document.onkeydown = KeyDown;
-</script>
-<<<<<<< HEAD
 
+</div>	
+{% endif %}
 
+{% endblock %}
 
 
 
@@ -323,37 +340,39 @@ document.onkeydown = KeyDown;
 
 
 
-{% if session.logged_in %}
-=======
-{% if current_user.is_authenticated() %}
->>>>>>> aa0bc4ff5fac92ff528c8637825a6f78661922e7
-<div class="AddToCollection">
-	
-	 <form action="{{ url_for('add_to_collection') }}" id="addToCollectionForm" method="post">
-	 	<fieldset>
-	 	<legend>Add this game to a collection:</legend>
-		{% if collections%}
-		Collection Name:
-		<select name=cid form="addToCollectionForm">
-		{% for collection in collections %}       
-			<option value={{collection.cid}}> {{collection.cname|safe}}</option>"   
-	    {% endfor %} 
-	    </select>	
-	    Label:
-	    <input type="text" name="label" placeholder="Optional label (80 chars max)" maxlength=80 size=80 >
-	    <input type="number" name="gid" value="{{game.gid}}" hidden>
-        <input type="text" name="label" placeholder="optional label (max 80 chars)" maxlength=80 size=100>
-        <input type="submit" value="Add to Collection">
-        {% else %}
-        <em>
-        	It appears that you don't have any collections yet. 
-        	Please go to the <a href={{url_for('collection_explorer') }}>Collection Explorer </a> page to create some collections.
-        </em>
 
-        {% endif %}
-        </fieldset>
-    </form>
-</div>	
-{% endif %}
+{% if session.logged_in %}
+=======
+{% if current_user.is_authenticated() %}
+>>>>>>> aa0bc4ff5fac92ff528c8637825a6f78661922e7
+<div class="AddToCollection">
+	
+	 <form action="{{ url_for('add_to_collection') }}" id="addToCollectionForm" method="post">
+	 	<fieldset>
+	 	<legend>Add this game to a collection:</legend>
+		{% if collections%}
+		Collection Name:
+		<select name=cid form="addToCollectionForm">
+		{% for collection in collections %}       
+			<option value={{collection.cid}}> {{collection.cname|safe}}</option>"   
+	    {% endfor %} 
+	    </select>	
+	    Label:
+	    <input type="text" name="label" placeholder="Optional label (80 chars max)" maxlength=80 size=80 >
+	    <input type="number" name="gid" value="{{game.gid}}" hidden>
+        <input type="text" name="label" placeholder="optional label (max 80 chars)" maxlength=80 size=100>
+        <input type="submit" value="Add to Collection">
+        {% else %}
+        <em>
+        	It appears that you don't have any collections yet. 
+        	Please go to the <a href={{url_for('collection_explorer') }}>Collection Explorer </a> page to create some collections.
+        </em>
 
-{% endblock %}
+        {% endif %}
+        </fieldset>
+    </form>
+</div>	
+{% endif %}
+
+{% endblock %}
+
