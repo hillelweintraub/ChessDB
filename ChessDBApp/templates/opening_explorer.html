@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+{% block  head %}
+<script language="JavaScript" src="../static/pgnviewer/js/ltpgnviewer.js"></script>
+<script language="JavaScript" src="../static/pgnviewer/js/ltpgnviewer_helper.js"></script>
+<script language="JavaScript" src="../static/pgnviewer/js/ltpgnboard.js"></script>
+<link rel=stylesheet type="text/css" href="../static/pgnviewer/css/ltpgnviewer.css" />
+{% endblock %}
+
+{% block body %}
+<script language="JavaScript">
+document.writeln("<table border=0><tr><td></td><td><center><h1>Line Explorer</h1></center></td></tr>")
+document.writeln("<tr><td><FORM name=BoardForm><table border=0><tr><td>");
+if ((BGColor!="")&&(document.getElementsByTagName)) document.getElementsByTagName('BODY')[0].style.backgroundColor=BGColor;
+if (ImagePath!="") SetBorder(0);
+WriteBoard(1);
+WritePosition();
+document.writeln("</td></tr></table></FORM>");
+Init('');
+AllowRecording(false);
+RotateBoard(false);
+document.writeln("<form><input type=checkbox name='rotated' value=1 onClick='javascript:RotateBoard(this.checked)'>rotate board</form>")
+ApplyPgnMoveText("{{move_text}}");
+MoveForward({{ply}}); 
+setTimeout('RefreshBoard(true)',1000);
+if (window.event) document.captureEvents(Event.KEYDOWN);
+document.onkeydown = KeyDown;
+
+document.writeln("</td><td>")
+if("{{move_text}}".length >2){
+  document.writeln("<fieldset><legend><b>Explored Line:</b></legend> {{move_text}} </fieldset>");
+}
+else{
+   document.writeln("<fieldset><legend><b>Explored Line:</b></legend>",
+                    "<em> Click on a move from the table below to begin following a line </em> </fieldset>");
+}
+document.writeln("</br><fieldset><legend><b>Current Position (FEN):</b></legend> {{position}}  </fieldset></br>");
+document.writeln(
+'<div class="stats"> ' +
+      '<form name="hidden_form" action="{{ url_for("opening_explorer") }}" method="post"> ' +
+        '<input type="text" name="move_text" value="****TODO****" hidden> ' +
+        '<input type="text" name="position" value="****TODO****" hidden> ' +
+        '<input type="number" name="ply" value="0" hidden> ' +
+        '<input type="number" name="mid" value="0" hidden> ' +
+        '<input type="submit" value="hidden form" hidden> ' +
+      '</form> ' +
+  '<fieldset><legend><b>Statistics:</b></legend>' +    
+  '<table style="width:100%" class="entries"> ' +
+      '<tr> ' +
+          '<th>Move</th> ' +
+          '<th># of Games</th> ' +
+          '<th>White Win</th> '  + 
+          '<th>Draw</th> ' +
+          '<th>Black Win</th> ' +
+          '<th>View Games</th> ' +
+      '</tr> ' +
+      '{% if stats %} ' +  
+      '{% for stat in stats %} ' +
+      '<tr> ' +
+          '<td><a href="javascript:getNewFENandMoveText(\'{{move_text}}\',\'{{stat.move}}\')"><b>{{stat.move}}</b></a></td> ' +
+          '<td>{{ stat.num_games}}</td> ' +
+          '<td>{{ stat.white_win}}%</td> ' +
+          '<td>{{ stat.draw}}%</td> ' +
+          '<td>{{ stat.black_win}}%</td> ' +
+          '<td>  <form action="javascript:getNewFENandMoveText(\'{{move_text}}\',\'{{stat.move}}\', \'{{stat.mid}}\')"> ' +
+                  '<input type="submit" value="view games"> ' +
+                '</form> ' +
+          '</td> ' +
+      '</tr> '  +
+      '{% endfor %} ' + 
+      '{% else %} ' +
+      '<tr><td colspan=6 height="280px"><center><em>The line you have been following has ended!!!</center></em></td></tr>' +
+      '{% endif %} ' +     
+    '</table> ' +
+    '</fieldset>' +
+'</div> ' 
+)
+document.writeln("</td></tr></table></br>");
+document.writeln(
+'<fieldset>' +
+'<legend> <b>Associated Games</b> (Games which have the state shown in the viewer [random selection limited to 100 games] ): </legend> <br>' +
+    '<div class="entries">' +
+        '<table style="width:100%" class="entries">' +
+            '<tr>' +
+                '<th>View</th>' +
+                '<th>Date</th>' +
+                '<th>White</th>' +   
+                '<th>Black</th>' +
+                '<th>W ELO</th>' +
+                '<th>B ELO</th>' +
+                '<th>Event</th>' +
+                '<th>Site</th>' +
+                '<th>ECO</th>' +
+                '<th>Opening</th>' +
+                '<th>Round</th>' +
+                '<th>Res</th>' +
+                '<th># Mvs</th>' +
+            '</tr>' +
+            '{% if games %}' +   
+            '{% for game in games %}' +
+            '<tr>' +
+                '<td>' +
+                    '<form action="{{ url_for("pgn_viewer") }}" method="post">' + 
+                        '<input type="number" name="gid" value="{{game.gid}}" hidden>' +
+                        '<input type="submit" value="view">' +
+                    '</form>' +
+                '</td>' +
+                '<td>{{ game.Date }}</td>' +
+                '<td>{{ game.White }}</td>' +
+                '<td>{{ game.Black }}</td>' +
+                '<td>{{ game.WhiteElo }}</td>' +
+                '<td>{{ game.BlackElo }}</td>' +
+                '<td>{{ game.Event }}</td>' +
+                '<td>{{ game.Site }}</td>' +
+                '<td>{{ game.ECO }}</td>' +
+                '<td>{{ game.Opening }} ({{ game.Variation}})</td>' +
+                '<td>{{ game.Round }}</td>' +
+                '<td>{{ game.Result }}</td>' +
+                '<td>{{ game.number_of_moves }}</td>' +
+            '</tr>' +   
+            '{% endfor %}' + 
+            '{% else %}' +
+            '<tr><td colspan=13 height="280px" >' +
+                '<center><em>Click "view games" in the <b>Statistics</b> panel to fill this table with appropriate games</em></center>' +
+                '</td>' +
+            '</tr>' +
+            '{% endif %}' +      
+        '</table>' +
+   ' </div>' +
+'</fieldset>' 
+)
+
+</script>
+{% endblock %}

@@ -9,39 +9,345 @@
 {% block body %}
 <script language="JavaScript">
 document.writeln("<table border=0><tr><td><FORM name=BoardForm><table border=0><tr><td>");
-if ((BGColor!="")&&(document.getElementsByTagName)) document.getElementsByTagName('BODY')[0].style.backgroundColor=BGColor;
+// if ((BGColor!="")&&(document.getElementsByTagName)) document.getElementsByTagName('BODY')[0].style.backgroundColor=BGColor;
 if (ImagePath!="") SetBorder(0);
 WriteBoard(1);
 WriteButtons();
 WritePosition();
+
 document.writeln("</td></tr></table></FORM>");
 Init('');
 AllowRecording(false);
-RotateBoard(true);
+RotateBoard(false);
+document.writeln("<form><input type=checkbox name='rotated' value=1 onClick='javascript:RotateBoard(this.checked)'>rotate board</form>")
 ApplyPgnMoveText("{{game.move_list}}");
-AddText("</td><td>"+"<H3>{{game.White}} vs. {{game.Black}}</H3>"+GetHTMLMoveText(0,0,1));
+document.writeln("</td><td>"+"<H3>{{game.White}} vs. {{game.Black}}</H3>"+GetHTMLMoveText(0,0,1));
 document.writeln("</td></tr></table>");
 setTimeout('RefreshBoard(true)',1000);
 if (window.event) document.captureEvents(Event.KEYDOWN);
 document.onkeydown = KeyDown;
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {% if session.logged_in %}
 <div class="AddToCollection">
 	
 	 <form action="{{ url_for('add_to_collection') }}" id="addToCollectionForm" method="post">
 	 	<fieldset>
-	 	<legend>Add this game to:</legend>
+	 	<legend>Add this game to a collection:</legend>
+		{% if collections%}
+		Collection Name:
 		<select name=cid form="addToCollectionForm">
 		{% for collection in collections %}       
 			<option value={{collection.cid}}> {{collection.cname|safe}}</option>"   
 	    {% endfor %} 
 	    </select>	
+	    Label:
+	    <input type="text" name="label" placeholder="Optional label (80 chars max)" maxlength=80 size=80 >
 	    <input type="number" name="gid" value="{{game.gid}}" hidden>
         <input type="submit" value="Add to Collection">
+        {% else %}
+        <em>
+        	It appears that you don't have any collections yet. 
+        	Please go to the <a href={{url_for('collection_explorer') }}>Collection Explorer </a> page to create some collections.
+        </em>
+
+        {% endif %}
         </fieldset>
     </form>
-
-
 </div>	
 {% endif %}
 

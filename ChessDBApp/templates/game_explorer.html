@@ -50,8 +50,8 @@
         </dl>
         </fieldset>
     </form>
-    {% if entries %}
-        <br>
+    <fieldset>
+    <legend> Results: </legend> <br>
         <div class="entries">
             <table style="width:100%" class="entries">
                 <tr>
@@ -69,6 +69,7 @@
                     <th>Res</th>
                     <th># Mvs</th>
                 </tr>
+                {% if entries %}   
                 {% for game in entries %}
                 <tr>
                     <td>
@@ -90,9 +91,16 @@
                     <td>{{ game.Result }}</td>
                     <td>{{ game.number_of_moves }}</td>
                 </tr>   
-                {% endfor %}   
+                {% endfor %} 
+                {% else %}
+                <tr><td colspan=13 height="280px" >
+                    <center><em>Enter a new search  to fill this table with appropriate games</em></center>
+                    </td>
+                </tr>
+                {% endif %}      
             </table>
         </div>
-    {% endif %}
+    
+    </fieldset>
 {% endblock %}
 

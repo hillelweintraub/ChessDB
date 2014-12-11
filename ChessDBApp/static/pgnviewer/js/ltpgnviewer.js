@@ -48,7 +48,7 @@ LabelPic = new Array(5);
 Annotation = new Array();
 DocImg=new Array();
 
-var ImagePathOld="-", ImagePath="../static/pgnviewer/img/alpha30/", ImageOffset=0, IsLabelVisible=true, Border=1, BorderColor="#404040", ScoreSheet=0, BGColor="";
+var ImagePathOld="-", ImagePath="../static/pgnviewer/img/leipzig35/", ImageOffset=0, IsLabelVisible=true, Border=1, BorderColor="#404040", ScoreSheet=0, BGColor="";
 
 function SetImagePath(pp)
 { ImagePath=pp;

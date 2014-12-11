@@ -87,7 +87,7 @@ function WritePosition()
   else ss=25;
   document.writeln("<TABLE border=0 cellpadding=1 cellspacing=0><TR>");
   document.writeln("<TD style='vertical-align:middle'>Position after:</TD>");
-  document.writeln("<TH><input type=text name='Position' value='' width="+eval(4*ss-4)+" style='width:"+eval(4*ss)+"px' id='inpPos' size=14></TH>");
+  document.writeln("<TH><input type=text name='Position' value='' width="+eval(4*ss-4)+" style='width:"+eval(4*ss)+"px' id='inpPos' size=14 readonly></TH>");
   document.writeln("<TD><input type=button value='print' width="+eval(2*ss-4)+" style='width:"+eval(2*ss)+"px' onClick='PrintPosition()'></TD>");
   document.writeln("</TR></TABLE>");
 }
