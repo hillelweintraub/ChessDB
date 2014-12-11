@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS Games ( gid                   INTEGER AUTO_INCREMENT,
                                    Opening               VARCHAR(50),
                                    Variation             VARCHAR(50),
                                    number_of_moves       INTEGER NOT NULL,
-                                   move_list             VARCHAR(2500) NOT NULL,
+                                   move_list             VARCHAR(3000) NOT NULL,
                                    game_source           VARCHAR(20) NOT NULL,
                                    PRIMARY KEY (gid),
                                    UNIQUE (White, Black, Event, Round, Date)
