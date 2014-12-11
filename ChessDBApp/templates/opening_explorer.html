@@ -34,7 +34,7 @@ else{
    document.writeln("<fieldset><legend><b>Explored Line:</b></legend>",
                     "<em> Click on a move from the table below to begin following a line </em> </fieldset>");
 }
-document.writeln("</br><fieldset><legend><b>Current Position (FEN):</b></legend> {{position}}  </fieldset></br>");
+document.writeln("<br><fieldset><legend><b>Current Position (FEN):</b></legend> {{position}}  </fieldset><br>");
 document.writeln(
 '<div class="stats"> ' +
       '<form name="hidden_form" action="{{ url_for("opening_explorer") }}" method="post"> ' +
@@ -75,7 +75,7 @@ document.writeln(
     '</fieldset>' +
 '</div> ' 
 )
-document.writeln("</td></tr></table></br>");
+document.writeln("</td></tr></table><br>");
 document.writeln(
 '<fieldset>' +
 '<legend> <b>Associated Games</b> (Games which have the state shown in the viewer [random selection limited to 100 games] ): </legend> <br>' +

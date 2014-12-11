@@ -54,8 +54,8 @@
     <fieldset>
     <legend> Results: </legend> <br>
     {% if entries %}
-        <em>{{number_of_matches}} game(s) matched the search </em><br>
-    {% end if %}    
+        <em>{{number_of_matches}} game(s) matched the search </em><br><br>
+    {% endif %}    
         <div class="entries">
             <table style="width:100%" class="entries">
                 <tr>
@@ -90,7 +90,7 @@
                     <td>{{ game.Event }}</td>
                     <td>{{ game.Site }}</td>
                     <td>{{ game.ECO }}</td>
-                    <td>{{ game.Opening }} ({{ game.Variation}})</td>
+                    <td>{{ game.Opening }} {% if game.Variation %}  ({{game.Variation}})  {%endif%} </td>
                     <td>{{ game.Round }}</td>
                     <td>{{ game.Result }}</td>
                     <td>{{ game.number_of_moves }}</td>
