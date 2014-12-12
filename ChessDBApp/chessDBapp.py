@@ -122,7 +122,11 @@ def login():
             user.email = email
             login_user(user)
             flash('Congratulations! You have successfully logged in.')
-            return redirect(url_for('game_explorer'))
+            if 'redirectToCollectionExplorer' in session:
+                session.pop('redirectToCollectionExplorer')
+                return redirect(url_for('collection_explorer'))
+            else: 
+                return redirect(url_for('game_explorer'))
     return render_template('login.html', error=error)
 
 @app.route('/logout')
@@ -177,7 +181,7 @@ def game_explorer(page):
     record_offset = records_per_page*(page-1)
     cursor = g.db.cursor()
     if request.method == 'POST':
-        game_explorer_query,count_query = build_game_explorer_query(request.form)
+        game_explorer_query,count_query=build_game_explorer_query(request.form)
         if not game_explorer_query:
             flash('Search was not specific enough')
             return redirect(url_for('game_explorer'))
@@ -238,7 +242,8 @@ def game_explorer(page):
 def build_game_explorer_query(form):
     game_explorer_query = ("SELECT g.Date, g.White, g.Black, g.WhiteElo, "
                         "g.BlackElo, g.Event, g.Site, g.ECO, g.Opening, "
-                        "g.Variation, g.Round, g.Result, g.number_of_moves, g.gid "
+                        "g.Variation, g.Round, g.Result, "
+                        "g.number_of_moves, g.gid "
                         "From Games g ")
     count_query = "SELECT count(*) from Games g "
     where_clause_list = []
@@ -339,32 +344,37 @@ def add_to_collection():
 #
 ################################################################################
 @app.route('/collection_explorer',methods=['GET', 'POST'])
-@login_required
 def collection_explorer():
     pop_game_explorer_query()
-    cursor = g.db.cursor()
-    if request.method == 'POST':
-        insert_collection_statement = \
-            ("INSERT INTO Owned_Collections "
-             "(cname, uuid, description, tag) "
-             "VALUES "
-             "(%(cname)s, %(uuid)s, %(description)s, %(tag)s)"
-            ) 
-        collection  = {k:v for k,v in request.form.iteritems()}
-        collection['uuid'] = current_user.get_id()
-        status = database.execSqlWithParams(cursor, insert_collection_statement,
-                                            collection)
+    if not current_user.is_authenticated():
+        session['redirectToCollectionExplorer'] = True
+        flash("Please log in to access this page.")
+        return redirect(url_for('login'))
+    else:      
+        cursor = g.db.cursor()
+        if request.method == 'POST':
+            insert_collection_statement = \
+                ("INSERT INTO Owned_Collections "
+                 "(cname, uuid, description, tag) "
+                 "VALUES "
+                 "(%(cname)s, %(uuid)s, %(description)s, %(tag)s)"
+                ) 
+            collection  = {k:v for k,v in request.form.iteritems()}
+            collection['uuid'] = current_user.get_id()
+            status = database.execSqlWithParams(cursor, 
+                                                insert_collection_statement,
+                                                collection)
+            cursor.close()
+            if status == 0:
+                flash("You have successfully created a collection!")
+                return redirect(url_for('collection_explorer'))
+            else:
+                flash("A problem occurred! Unable to create collection.")
+                return redirect(url_for('collection_explorer'))
+        collections = get_collections(cursor)
         cursor.close()
-        if status == 0:
-            flash("You have successfully created a collection!")
-            return redirect(url_for('collection_explorer'))
-        else:
-            flash("A problem occurred! Unable to create collection.")
-            return redirect(url_for('collection_explorer'))
-    collections = get_collections(cursor)
-    cursor.close()
-    return render_template('collection_explorer.html',
-                           collections = collections)
+        return render_template('collection_explorer.html',
+                               collections = collections)
  
 
 @app.route('/delete_collection/<cid>')
@@ -436,6 +446,7 @@ def opening_explorer():
     pop_game_explorer_query()
     START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     START_FEN_PROCESSED = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq" 
+    MAX_GAMES = 20        # maximum number of games displayed
     move_text = '1.' 
     ply = 0
     mid = 0
@@ -497,10 +508,10 @@ def opening_explorer():
                   number_of_moves=row[12],gid=row[13]
                   ) for row in cursor.fetchall()]
         
-        #Limit output to a random selection of 100 games   
-        if len(games) > 100:   
+        #Limit output to a random selection of MAX_GAMES games   
+        if len(games) > MAX_GAMES:   
             random.shuffle(games)
-            games = games[0:100]    
+            games = games[0:MAX_GAMES]    
 
     cursor.close()
 
@@ -508,7 +519,8 @@ def opening_explorer():
                                                     ply = ply,
                                                     stats = stats,
                                                     games = games,
-                                                    position = position)
+                                                    position = position,
+                                                    MAX_GAMES=MAX_GAMES)
 
 def util_processFEN(line):
     return ' '.join(line.split()[:-3])     

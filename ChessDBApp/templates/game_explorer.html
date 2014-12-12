@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 {% block body %}
-    <h2>Game Explorer</h2>
+    <h2>Game Explorer</h2> <br>
     <form action="{{ url_for('game_explorer') }}" id="game_explorer_form" method="post">
         <fieldset>
-        <legend>Search Criteria:</legend>
+        <legend> <b> Search Criteria: </b> </legend>
         <dl>
             <dt>ELO:</dt>
             <dd> 
@@ -43,7 +43,7 @@
 
             <dt>ECO:</dt>
             <dd> 
-                <input type="text" name="eco" placeholder="A00-Z99" size="15"> 
+                <input type="text" name="eco" placeholder="A00-Z99" pattern="[A-Z][0-9]{2}" size="15"> 
             </dd>
 
             <dd><input type="submit" value="Find games">
@@ -52,7 +52,7 @@
     </form>
     
     <fieldset>
-    <legend> Results: </legend> <br>
+    <legend> <b> Results: </b> </legend> <br>
     {% if entries %}
         <em>{{number_of_matches}} game(s) matched the search </em><br><br>
     {% endif %}    
@@ -112,7 +112,7 @@
             {% if page %}
               {% if page != pagination.page %}
                 <a href="{{ url_for_other_page(page) }}">{{ page }}</a>
-              {% else %}
+              {% elif not (page == 1 and not pagination.has_next) %}
                 <strong>{{ page }}</strong>
               {% endif %}
             {% else %}
