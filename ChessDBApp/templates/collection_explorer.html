@@ -1,36 +1,51 @@
 {% extends "layout.html" %}
 {% block body %}
-    <h2>Your Collections</h2>
+    <h2>Collection Explorer</h2><br>
+    <fieldset> <legend> <b> Create a New Collection: </b> </legend>
     <form action="{{ url_for('collection_explorer') }}" method="post">
         <dl>
-            <dt>Collection name:</dt>
-            <dd><input type="text" name="cname" maxlength="50" size="50" required>
+            <dt>Name:</dt>
+            <dd><input type="text" name="cname" maxlength="50" size="65"  placeholder="Required collection name (50 chars max)" required>
             <dt>Description:
-            <dd><textarea name="description" rows="5" cols="40" maxlength="150"></textarea>
+            <dd><textarea name="description" rows="5" cols="40"  style="width:385px; font-family:sans-serif" maxlength="150" 
+                          placeholder="Required collection description (150 chars max)"></textarea>
             <dt>Tag:
-            <dd><input type="text" name="tag" maxlength="20" size="30">
+            <dd><input list="tags"  name="tag" maxlength="20" size="30" placeholder="Optional tag (20 chars max)">
+              <datalist id="tags">
+                <option value="Classics">
+                <option value="End Game">  
+                <option value="Mid Game">
+                <option value="Opening">    
+                <option value="Positional Play">
+                <option value="Tactical Play">
+              </datalist>    
             <dd><input type="submit" value="Create new collection">
         </dl>
     </form>
+    </fieldset>
     <br>
+
+    <fieldset> <legend> <b> My Collections: </b> </legend>
     <ul class="entries">
         {% for collection in collections %}
         <li>
             <h2>
                 <a href="{{ url_for('show_collection_games',cid=collection.cid) }}">
-                    {{ collection.cname|safe }}
+                    {{ collection.cname|safe}}
                 </a>
+                &nbsp &nbsp 
+                 <button onclick="delete_collection({{collection.cid}})"  
+                        {% if collection.cid == cid %} autofocus {% endif %} > Delete Collection</button>
+                 <script>
+                     function delete_collection(cid){
+                         var confirmed = confirm("Are you sure you want to delete a collection?")
+                         if (confirmed)
+                             window.location.assign("/delete_collection/"+cid)
+                     }
+                 </script>
             </h2>
-            {{ collection.description|safe }}<br>
-            {{ collection.tag|safe }}
-            <button onclick="delete_collection({{collection.cid}})">Delete Collection</button>
-            <script>
-                function delete_collection(cid){
-                    var confirmed = confirm("Are you sure you want to delete a collection?")
-                    if (confirmed)
-                        window.location.assign("/delete_collection/"+cid)
-                }
-            </script>
+            {% if collection.description %} {{ collection.description|safe }}  <br> {%endif%}
+            {%if collection.tag %} <span class="tag">{{ collection.tag|safe }} </span> {%endif%}
         </li>
             {% if cid==collection.cid %}
                 <table style="width:100%" class="entries">
@@ -41,7 +56,7 @@
                         <th>Black</th>
                         <th>Event</th>
                         <th>Date</th>
-                        <th>Delete</th>
+                        <th>Remove</th>
                     </tr>
                     {% for game in games %}
                     <tr>
@@ -59,13 +74,13 @@
                                 }
                             </script>
                         </td>                        
-                        <td>{{ game.label }}</td>
+                        <td>{% if game.label %} {{ game.label }} {% else %} <center>--</center>  {% endif %}</td>
                         <td>{{ game.White }}</td>
                         <td>{{ game.Black }}</td>                        
                         <td>{{ game.Event }}</td>
                         <td>{{ game.Date }}</td> 
                         <td>
-                            <button onclick="delete_contained_game({{collection.cid}},{{ game.gid }})">Delete</button>
+                            <button onclick="delete_contained_game({{collection.cid}},{{ game.gid }})">Remove</button>
                         </td>                       
                     </tr>   
                     {% endfor %}   
@@ -75,4 +90,5 @@
         <li><em>You have not created any collections yet.</em>
         {% endfor %}
     </ul>
+    </fieldset>
 {% endblock %}
