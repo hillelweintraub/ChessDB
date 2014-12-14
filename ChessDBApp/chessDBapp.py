@@ -13,7 +13,7 @@ import random
 # configuration
 USERNAME = 'root'
 PASSWORD = '1234'
-DATABASE = 'ChessDB'
+DATABASE = 'TestChessDB'
 DEBUG = True
 SECRET_KEY = 'development key'
 
